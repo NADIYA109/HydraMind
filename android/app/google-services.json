@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "361931335574",
+    "project_id": "hydramind-8f4f0",
+    "storage_bucket": "hydramind-8f4f0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:361931335574:android:a59c91e42b03c5d0699fb7",
+        "android_client_info": {
+          "package_name": "com.example.hydramind"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAovUBvCNH1a42oAnV_KAVVgLmCZgpO9bA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
