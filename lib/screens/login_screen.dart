@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hydramind/screens/email_auth_screen.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
 
@@ -61,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 40),
 
-              // ✅ Continue with Email
+              // Continue with Email
               authButton(
                 text: AppStrings.continueWithEmail,
                 isSelected: selectedAuth == AuthType.email,
@@ -69,6 +70,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   setState(() {
                     selectedAuth = AuthType.email;
                   });
+                   Navigator.push(
+                     context,
+                     MaterialPageRoute(
+                     builder: (_) => const EmailAuthScreen(),
+                     ),
+                   );
                 },
               ),
 
