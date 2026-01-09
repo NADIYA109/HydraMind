@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hydramind/screens/profile_setup_screen.dart';
 import '../core/constants/app_colors.dart';
 
 class EmailAuthScreen extends StatefulWidget {
@@ -80,7 +81,15 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                    builder: (_) => const ProfileSetupScreen(),
+                    ),
+                    );
+
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
