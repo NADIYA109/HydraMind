@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
+import '../providers/profile_provider.dart';
+import '../providers/water_provider.dart';
+import 'home_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -93,11 +97,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Age is required';
                           }
-                          if (!RegExp(r'^\d{1,2}$').hasMatch(value)) {
-                            return 'Enter valid age';
-                          }
-                          final age = int.parse(value);
-                          if (age < 1 || age > 150) {
+                          final age = int.tryParse(value);
+                          if (age == null || age < 8 || age > 99) {
                             return 'Enter valid age';
                           }
                           return null;
@@ -117,10 +118,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             return 'Weight is required';
                           }
                           final weight = int.tryParse(value);
-                          if (weight == null) {
-                            return 'Enter valid number';
-                          }
-                          if (weight < 1 || weight > 200) {
+                          if (weight == null || weight < 20 || weight > 200) {
                             return 'Enter valid weight';
                           }
                           return null;
@@ -147,17 +145,26 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 12,
-                          )
+                          ),
                         ),
                         items: const [
-                          DropdownMenuItem(value: 'Low', child: Text('Low')),
-                          DropdownMenuItem(value: 'Moderate', child: Text('Moderate')),
-                          DropdownMenuItem(value: 'High', child: Text('High')),
+                          DropdownMenuItem(
+                              value: 'Low', child: Text('Low')),
+                          DropdownMenuItem(
+                              value: 'Moderate', child: Text('Moderate')),
+                          DropdownMenuItem(
+                              value: 'High', child: Text('High')),
                         ],
                         onChanged: (value) {
                           setState(() {
                             selectedActivity = value!;
                           });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please select activity level';
+                          }
+                          return null;
                         },
                       ),
 
@@ -168,16 +175,39 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
             ),
 
-            ///bottom button
+            /// Bottom button
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
               child: SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      ////
+                      // Save profile
+                      context.read<ProfileProvider>().saveProfile(
+                            name: nameController.text.trim(),
+                            age: int.parse(ageController.text),
+                            weight: int.parse(weightController.text),
+                            activity: selectedActivity,
+                          );
+
+                            // RESET firestore water data
+                         await context.read<WaterProvider>().resetDailyWater();
+
+                      // Calculate daily water goal 
+                      context.read<WaterProvider>().calculateDailyGoal(
+                            weight: int.parse(weightController.text),
+                            activity: selectedActivity,
+                          );
+
+                      // Navigate to Home
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const HomeScreen(),
+                        ),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -188,7 +218,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   ),
                   child: const Text(
                     'Continue',
-                    style: TextStyle(fontSize: 16 , color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -199,43 +232,27 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
+  /// Common input decoration
   InputDecoration _inputDecoration(String? label) {
-  return InputDecoration(
-    labelText: label,
-    labelStyle: const TextStyle(color: AppColors.textSecondary),
-
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(
-        color: Colors.black54, 
-        width: 1,
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: AppColors.textSecondary),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.black54, width: 1),
       ),
-    ),
-
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(
-        color: AppColors.primary, 
-        width: 2,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
-    ),
-
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(
-        color: Colors.red,
-        width: 1.2,
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.red, width: 1.2),
       ),
-    ),
-
-    focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(
-        color: Colors.red,
-        width: 2,
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
-    ),
-  );
-}
-
+    );
+  }
 }

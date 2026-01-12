@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hydramind/screens/login_screen.dart';
-//import '../login_screen.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
 
@@ -15,7 +14,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 10), () {
+    Future.delayed(const Duration(seconds: 5), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
