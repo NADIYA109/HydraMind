@@ -5,11 +5,14 @@ import 'package:hydramind/providers/mood_provider.dart';
 import 'package:hydramind/providers/profile_provider.dart';
 import 'package:hydramind/providers/water_provider.dart';
 import 'package:hydramind/screens/spalsh_screen.dart';
+import 'package:hydramind/services/notification_service.dart';
 import 'package:provider/provider.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+ await NotificationService.init();
+  
   runApp(
     MultiProvider(
       providers: [

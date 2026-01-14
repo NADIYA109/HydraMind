@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hydramind/screens/login_screen.dart';
+import 'package:hydramind/services/fcm_service.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
 
@@ -14,10 +15,26 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 5), () {
+
+    Future.microtask(() async {
+     
+      //Ask notification permission
+      await FCMService.requestPermission();
+      // Get & save FCM token
+      await FCMService.saveTokenToFirestore();
+      //Foreground notification listener
+      FCMService.onMessageListener();
+
+      //  Splash delay
+      await Future.delayed(const Duration(seconds: 3));
+
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+        ),
       );
     });
   }

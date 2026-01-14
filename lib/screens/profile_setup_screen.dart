@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hydramind/screens/main_navigation_screen.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/profile_provider.dart';
@@ -205,7 +206,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const HomeScreen(),
+                          //builder: (_) => const HomeScreen(),
+                          builder: (_) => const MainNavigationScreen(),
                         ),
                       );
                     }
