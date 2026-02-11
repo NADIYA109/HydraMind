@@ -11,7 +11,10 @@ import 'package:provider/provider.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
- await NotificationService.init();
+
+  await NotificationHelper.instance.initNotifications();
+  await NotificationHelper.instance.requestPermission();
+ //await NotificationService.init();
   
   runApp(
     MultiProvider(

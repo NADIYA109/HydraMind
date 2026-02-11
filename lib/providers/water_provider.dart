@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hydramind/services/firestore_services.dart';
-import '../services/firestore_services.dart';
 import 'package:intl/intl.dart';
 
 class WaterProvider extends ChangeNotifier {
@@ -12,11 +11,9 @@ class WaterProvider extends ChangeNotifier {
   int get currentIntake => _currentIntake;
   int get dailyGoal => _dailyGoal;
 
-  double get progress =>
-      _dailyGoal == 0 ? 0 : _currentIntake / _dailyGoal;
+  double get progress => _dailyGoal == 0 ? 0 : _currentIntake / _dailyGoal;
 
-  String get today =>
-      DateFormat('yyyy-MM-dd').format(DateTime.now());
+  String get today => DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   void calculateDailyGoal({
     required int weight,
@@ -30,8 +27,7 @@ class WaterProvider extends ChangeNotifier {
             : 0;
 
     _dailyGoal = base + extra;
-  _currentIntake = 0;
-
+    _currentIntake = 0;
 
     notifyListeners();
   }
@@ -53,27 +49,26 @@ class WaterProvider extends ChangeNotifier {
 
   /// Load saved data on app start
   Future<void> loadWaterData() async {
-   final data = await _firestoreService.fetchWaterData();
+    final data = await _firestoreService.fetchWaterData();
 
-  if (data != null && data['date'] == today) {
-    _currentIntake = data['intake'] ?? 0;
-    _dailyGoal = data['goal'] ?? _dailyGoal;
-  } else {
-    //New day / first time user
-    _currentIntake = 0;
-  }
+    if (data != null && data['date'] == today) {
+      _currentIntake = data['intake'] ?? 0;
+      _dailyGoal = data['goal'] ?? _dailyGoal;
+    } else {
+      //New day / first time user
+      _currentIntake = 0;
+    }
 
-  notifyListeners();
+    notifyListeners();
   }
 
   Future<void> resetDailyWater() async {
-  _currentIntake = 0;
-  await _firestoreService.saveWaterData(
-    intake: 0,
-    goal: _dailyGoal,
-    date: today,
-  );
-  notifyListeners();
-}
-
+    _currentIntake = 0;
+    await _firestoreService.saveWaterData(
+      intake: 0,
+      goal: _dailyGoal,
+      date: today,
+    );
+    notifyListeners();
+  }
 }

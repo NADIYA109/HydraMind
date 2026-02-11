@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:hydramind/screens/main_navigation_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+
 import '../core/constants/app_colors.dart';
 import '../providers/profile_provider.dart';
 import '../providers/water_provider.dart';
-import 'home_screen.dart';
+import 'main_navigation_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -21,11 +24,85 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final TextEditingController weightController = TextEditingController();
 
   String selectedActivity = 'Moderate';
+  bool isLoading = false;
+  File? selectedImage;
+
+  /// IMAGE PICKER
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final directory = await getApplicationDocumentsDirectory();
+
+      final newPath =
+          '${directory.path}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final savedImage = await File(pickedFile.path).copy(newPath);
+
+      setState(() {
+        selectedImage = savedImage;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    ageController.dispose();
+    weightController.dispose();
+    super.dispose();
+  }
+
+  /// SAVE PROFILE
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
+
+    try {
+      final name = nameController.text.trim();
+      final age = int.parse(ageController.text);
+      final weight = int.parse(weightController.text);
+
+      // Save profile via Provider (Firestore handled inside provider)
+      await context.read<ProfileProvider>().saveProfile(
+            name: name,
+            age: age,
+            weight: weight,
+            activity: selectedActivity,
+            photoPath: selectedImage?.path,
+          );
+
+      //  Reset water data
+      await context.read<WaterProvider>().resetDailyWater();
+
+      //  Calculate water goal
+      context.read<WaterProvider>().calculateDailyGoal(
+            weight: weight,
+            activity: selectedActivity,
+          );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
@@ -44,7 +121,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 30),
 
                       const Text(
                         'Tell us about yourself',
@@ -67,10 +144,28 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 32),
 
-                      /// Name
+                      /// PROFILE IMAGE
+                      Center(
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: CircleAvatar(
+                            radius: 55,
+                            backgroundColor: Colors.grey.shade200,
+                            backgroundImage: selectedImage != null
+                                ? FileImage(selectedImage!)
+                                : null,
+                            child: selectedImage == null
+                                ? const Icon(Icons.camera_alt, size: 30)
+                                : null,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      /// NAME
                       TextFormField(
                         controller: nameController,
-                        textInputAction: TextInputAction.next,
                         decoration: _inputDecoration('Name'),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -79,28 +174,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           if (!RegExp(r'^[a-zA-Z ]+$').hasMatch(value)) {
                             return 'Only letters allowed';
                           }
-                          if (value.trim().length < 2) {
-                            return 'Name must be at least 2 characters';
-                          }
                           return null;
                         },
                       ),
 
                       const SizedBox(height: 16),
 
-                      /// Age
+                      /// AGE
                       TextFormField(
                         controller: ageController,
                         keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.next,
                         decoration: _inputDecoration('Age'),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Age is required';
-                          }
-                          final age = int.tryParse(value);
+                          final age = int.tryParse(value ?? '');
                           if (age == null || age < 8 || age > 99) {
-                            return 'Enter valid age';
+                            return 'Enter valid age (8–99)';
                           }
                           return null;
                         },
@@ -108,19 +196,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 16),
 
-                      /// Weight
+                      /// WEIGHT
                       TextFormField(
                         controller: weightController,
                         keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
                         decoration: _inputDecoration('Weight (kg)'),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Weight is required';
-                          }
-                          final weight = int.tryParse(value);
+                          final weight = int.tryParse(value ?? '');
                           if (weight == null || weight < 20 || weight > 200) {
-                            return 'Enter valid weight';
+                            return 'Enter valid weight (20–200)';
                           }
                           return null;
                         },
@@ -128,7 +212,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 24),
 
-                      /// Activity Level
                       const Text(
                         'Activity Level',
                         style: TextStyle(
@@ -141,90 +224,51 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       DropdownButtonFormField<String>(
                         value: selectedActivity,
-                        isDense: true,
-                        decoration: _inputDecoration(null).copyWith(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                        ),
+                        decoration: _inputDecoration(null),
                         items: const [
-                          DropdownMenuItem(
-                              value: 'Low', child: Text('Low')),
+                          DropdownMenuItem(value: 'Low', child: Text('Low')),
                           DropdownMenuItem(
                               value: 'Moderate', child: Text('Moderate')),
-                          DropdownMenuItem(
-                              value: 'High', child: Text('High')),
+                          DropdownMenuItem(value: 'High', child: Text('High')),
                         ],
                         onChanged: (value) {
-                          setState(() {
-                            selectedActivity = value!;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please select activity level';
-                          }
-                          return null;
+                          setState(() => selectedActivity = value!);
                         },
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 30),
                     ],
                   ),
                 ),
               ),
             ),
 
-            /// Bottom button
+            /// CONTINUE BUTTON
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
               child: SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      // Save profile
-                      context.read<ProfileProvider>().saveProfile(
-                            name: nameController.text.trim(),
-                            age: int.parse(ageController.text),
-                            weight: int.parse(weightController.text),
-                            activity: selectedActivity,
-                          );
-
-                            // RESET firestore water data
-                         await context.read<WaterProvider>().resetDailyWater();
-
-                      // Calculate daily water goal 
-                      context.read<WaterProvider>().calculateDailyGoal(
-                            weight: int.parse(weightController.text),
-                            activity: selectedActivity,
-                          );
-
-                      // Navigate to Home
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          //builder: (_) => const HomeScreen(),
-                          builder: (_) => const MainNavigationScreen(),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: isLoading ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        )
+                      : const Text(
+                          'Continue',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -234,14 +278,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  /// Common input decoration
+  ///  INPUT STYLE
   InputDecoration _inputDecoration(String? label) {
     return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(color: AppColors.textSecondary),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.black54, width: 1),
+        borderSide: const BorderSide(color: Colors.black54),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -249,7 +293,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.red, width: 1.2),
+        borderSide: const BorderSide(color: Colors.red),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),

@@ -1,36 +1,108 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
 
-class NotificationService {
-  static final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+class NotificationHelper {
+  NotificationHelper._internal();
+  static final NotificationHelper instance = NotificationHelper._internal();
 
-  static Future<void> init() async {
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+  FlutterLocalNotificationsPlugin? _plugin;
 
-    const settings = InitializationSettings(android: androidSettings);
+  Future<void> initNotifications() async {
+    _plugin = FlutterLocalNotificationsPlugin();
 
-    await _plugin.initialize(settings);
+    // 1. Initialize Timezones
+    tz.initializeTimeZones();
+
+    // 2. Set the local location with a safety net
+    try {
+      final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+    } catch (e) {
+      // If "Asia/Calcutta" fails, fallback to "Asia/Kolkata" or UTC
+      debugPrint("Timezone lookup failed, falling back to Kolkata: $e");
+      tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+    }
+
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const settings = InitializationSettings(android: androidInit);
+
+    await _plugin!.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (details) {
+        debugPrint("Notification Tapped: ${details.payload}");
+      },
+    );
   }
 
-  /// Show notification when FCM arrives
-  static Future<void> showFromFCM(RemoteMessage message) async {
-    final notification = message.notification;
-    if (notification == null) return;
+  /// PERMISSIONS – Call this to handle Android 13+ and Android 14+
+  Future<void> requestPermission() async {
+    final androidPlugin = _plugin?.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    // Request standard notification permission (Android 13+)
+    await androidPlugin?.requestNotificationsPermission();
+
+    // Request Exact Alarm permission (Android 14+)
+    // This will open the system settings for the user if not granted
+    await androidPlugin?.requestExactAlarmsPermission();
+  }
+
+  /// SCHEDULE REMINDER
+  Future<void> scheduleAt(TimeOfDay time) async {
+    if (_plugin == null) throw Exception('Notification plugin not initialized');
+
+    final now = tz.TZDateTime.now(tz.local);
+
+    // Create the scheduled time for today
+    tz.TZDateTime scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+
+    // If the time has already passed today, schedule it for tomorrow
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    debugPrint('Current Time: $now');
+    debugPrint('Scheduled for: $scheduled');
 
     const androidDetails = AndroidNotificationDetails(
-      'fcm_channel',
-      'HydraMind Notifications',
+      'daily_water_reminder', // Channel ID
+      'Water Reminders', // Channel Name
+      channelDescription: 'Hydration reminders for HydraApp',
       importance: Importance.max,
       priority: Priority.high,
+      showWhen: true,
     );
 
-    await _plugin.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      const NotificationDetails(android: androidDetails),
+    await _plugin!.zonedSchedule(
+      1,
+      'Hydration Reminder 💧',
+      'Time to drink water!',
+      scheduled,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'high_importance_channel',
+          'Important Reminders',
+          importance: Importance.max,
+          priority: Priority.high,
+          fullScreenIntent: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
+  }
+
+  /// CANCEL ALL
+  Future<void> cancelAll() async {
+    await _plugin?.cancelAll();
   }
 }

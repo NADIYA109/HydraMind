@@ -1,5 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hydramind/screens/login_screen.dart';
+import 'package:hydramind/screens/main_navigation_screen.dart';
+import 'package:hydramind/screens/profile_setup_screen.dart';
 import 'package:hydramind/services/fcm_service.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
@@ -17,25 +21,63 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
 
     Future.microtask(() async {
-     
-      //Ask notification permission
-      await FCMService.requestPermission();
-      // Get & save FCM token
-      await FCMService.saveTokenToFirestore();
-      //Foreground notification listener
-      FCMService.onMessageListener();
+      //Save FCM token only if user is logged in
+      final user = FirebaseAuth.instance.currentUser;
 
-      //  Splash delay
+      if (user != null) {
+        await FCMService.saveTokenToFirestore();
+        FCMService.onMessageListener();
+      }
+
+      //Splash delay
       await Future.delayed(const Duration(seconds: 3));
+
+      // final user = FirebaseAuth.instance.currentUser;
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
-        ),
-      );
+      //Not logged in
+      if (user == null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+        return;
+      }
+
+      //Logged in -> check profile in firestore
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!doc.exists) {
+        //No document at all -> profile incomplete
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
+        );
+        return;
+      }
+
+      final data = doc.data();
+
+      final bool profileComplete = data?['name'] != null &&
+          data?['age'] != null &&
+          data?['weight'] != null &&
+          data?['activity'] != null;
+
+      if (profileComplete) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
+        );
+      }
     });
   }
 
