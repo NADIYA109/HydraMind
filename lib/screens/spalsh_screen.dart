@@ -21,61 +21,62 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
 
     Future.microtask(() async {
-      //Save FCM token only if user is logged in
-      final user = FirebaseAuth.instance.currentUser;
+      try {
+        final user = FirebaseAuth.instance.currentUser;
 
-      if (user != null) {
-        await FCMService.saveTokenToFirestore();
-        FCMService.onMessageListener();
-      }
+        if (user != null) {
+          await FCMService.saveTokenToFirestore();
+          FCMService.onMessageListener();
+        }
 
-      //Splash delay
-      await Future.delayed(const Duration(seconds: 3));
+        await Future.delayed(const Duration(seconds: 3));
 
-      // final user = FirebaseAuth.instance.currentUser;
+        if (!mounted) return;
 
-      if (!mounted) return;
+        if (user == null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+          return;
+        }
 
-      //Not logged in
-      if (user == null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (!doc.exists) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
+          );
+          return;
+        }
+
+        final data = doc.data();
+
+        final bool profileComplete = data?['name'] != null &&
+            data?['age'] != null &&
+            data?['weight'] != null &&
+            data?['activity'] != null;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => profileComplete
+                ? const MainNavigationScreen()
+                : const ProfileSetupScreen(),
+          ),
+        );
+      } catch (e) {
+        print("Splash Error: $e");
+
+        if (!mounted) return;
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-        return;
-      }
-
-      //Logged in -> check profile in firestore
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      if (!doc.exists) {
-        //No document at all -> profile incomplete
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
-        );
-        return;
-      }
-
-      final data = doc.data();
-
-      final bool profileComplete = data?['name'] != null &&
-          data?['age'] != null &&
-          data?['weight'] != null &&
-          data?['activity'] != null;
-
-      if (profileComplete) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
         );
       }
     });

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "361931335574",
+    "project_id": "hydramind-8f4f0",
+    "storage_bucket": "hydramind-8f4f0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:361931335574:android:a59c91e42b03c5d0699fb7",
+        "android_client_info": {
+          "package_name": "com.example.hydramind"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "361931335574-kh8k7uekp1crnvqii01itneh95oubhin.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.hydramind",
+            "certificate_hash": "cb03267d4e0fae652bff742e5b7905927464c5ed"
+          }
+        },
+        {
+          "client_id": "361931335574-ft2v1bgprf0e3l5r7pfu2j0qrspbpoaq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAovUBvCNH1a42oAnV_KAVVgLmCZgpO9bA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "361931335574-ft2v1bgprf0e3l5r7pfu2j0qrspbpoaq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final water = context.watch<WaterProvider>();
-    final profile = context.watch<ProfileProvider>();
+    context.watch<ProfileProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
