@@ -3,14 +3,14 @@ import 'package:hydramind/services/notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../core/constants/app_colors.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+class ReminderScreen extends StatefulWidget {
+  const ReminderScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  State<ReminderScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<ReminderScreen> {
   bool reminderEnabled = false;
   TimeOfDay selectedTime = const TimeOfDay(hour: 9, minute: 0);
 
@@ -41,11 +41,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      // backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       appBar: AppBar(
-        title: const Text('Settings',
-            style: TextStyle(color: AppColors.textPrimary)),
-        backgroundColor: AppColors.background,
+        title: Text('Reminder Schedule',
+            style:
+                TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+        //backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
         elevation: 0,
       ),
       body: Padding(
@@ -143,7 +148,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(16)),
+            // color: Colors.white,
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16)),
         child: child,
       ),
     );

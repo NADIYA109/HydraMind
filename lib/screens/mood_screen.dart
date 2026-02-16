@@ -11,11 +11,15 @@ class MoodScreen extends StatelessWidget {
     final moodProvider = context.watch<MoodProvider>();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      //backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.textPrimary,
+        //backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
+        foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
         title: const Text('How are you feeling today?'),
       ),
       body: Padding(
@@ -24,12 +28,13 @@ class MoodScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Mood selection
-            const Text(
+            Text(
               'Select your mood',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                //color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
 
@@ -48,12 +53,13 @@ class MoodScreen extends StatelessWidget {
             const SizedBox(height: 32),
 
             /// Energy level
-            const Text(
+            Text(
               'Energy level',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                //color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
 
@@ -67,9 +73,7 @@ class MoodScreen extends StatelessWidget {
               label: moodProvider.energyLevel.toString(),
               activeColor: AppColors.primary,
               onChanged: (value) {
-                context
-                    .read<MoodProvider>()
-                    .setEnergyLevel(value.toInt());
+                context.read<MoodProvider>().setEnergyLevel(value.toInt());
               },
             ),
 
@@ -104,11 +108,12 @@ class MoodScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Save Mood',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white,
+                    //color: Colors.white,
+                    color: Theme.of(context).cardColor,
                   ),
                 ),
               ),
@@ -120,10 +125,10 @@ class MoodScreen extends StatelessWidget {
   }
 
   /// Single mood item widget
-  Widget _moodItem(
-      BuildContext context, String mood, String emoji) {
-    final selected =
-        context.watch<MoodProvider>().mood == mood;
+  Widget _moodItem(BuildContext context, String mood, String emoji) {
+    final selected = context.watch<MoodProvider>().mood == mood;
+
+    final theme = Theme.of(context);
 
     return GestureDetector(
       onTap: () {
@@ -134,13 +139,11 @@ class MoodScreen extends StatelessWidget {
         height: 72,
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.primary.withOpacity(0.15)
-              : Colors.white,
+              ? theme.colorScheme.primary.withOpacity(0.2)
+              : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: selected
-                ? AppColors.primary
-                : Colors.grey.shade300,
+            color: selected ? theme.colorScheme.primary : theme.dividerColor,
             width: 1.5,
           ),
         ),
@@ -154,9 +157,10 @@ class MoodScreen extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               mood,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
           ],

@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:hydramind/screens/setting_screen.dart';
 import '../core/constants/app_colors.dart';
 import 'home_screen.dart';
 import 'insights_screen.dart';
-import 'settings_screen.dart';
+import 'reminder_screen.dart';
 //import 'profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -18,15 +20,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = const [
     HomeScreen(),
     InsightsScreen(),
+    ReminderScreen(),
     SettingsScreen(),
-    //ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {

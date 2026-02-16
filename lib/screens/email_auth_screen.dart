@@ -86,10 +86,10 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.textPrimary,
-      ),
+          elevation: 0,
+          //backgroundColor: AppColors.background,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          foregroundColor: Theme.of(context).textTheme.bodyLarge?.color),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
@@ -98,10 +98,11 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
             const SizedBox(height: 20),
             Text(
               isLogin ? 'Login with Email' : 'Create an Account',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                //color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
             const SizedBox(height: 8),
@@ -109,10 +110,14 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
               isLogin
                   ? 'Enter your credentials to continue'
                   : 'Sign up to start your hydration journey',
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(
+                  fontSize: 16,
+                  //color: AppColors.textSecondary,
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color
+                      ?.withOpacity(0.7)),
             ),
             const SizedBox(height: 32),
 
@@ -156,18 +161,21 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                   ),
                 ),
                 child: isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
-                          color: Colors.white,
+                          //color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           strokeWidth: 2,
                         ),
                       )
                     : Text(
                         isLogin ? 'Login' : 'Sign Up',
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).cardColor,
+                        ),
                       ),
               ),
             ),

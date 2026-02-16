@@ -30,7 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
     context.watch<ProfileProvider>();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      // backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       appBar: AppBar(
         actions: [
           Consumer<ProfileProvider>(
@@ -52,18 +54,21 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         automaticallyImplyLeading: false,
         elevation: 0,
-        backgroundColor: AppColors.background,
-        title: const Text(
+        //backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
+        title: Text(
           'HydraMind',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            //color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.titleLarge?.color,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -76,21 +81,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     profile.name != null && profile.name!.isNotEmpty
                         ? 'Welcome, ${profile.name}'
                         : 'Welcome',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      //color: AppColors.textPrimary,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   );
                 },
               ),
 
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Let’s track your water intake today',
                 style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.textSecondary,
+                  //color: AppColors.textSecondary,
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color
+                      ?.withOpacity(0.7),
                 ),
               ),
 
@@ -105,16 +116,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          //color: Colors.white,
+                          color: Theme.of(context).cardColor,
+
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Column(
                           children: [
-                            const Text(
+                            Text(
                               'Today’s Water Intake',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: AppColors.textSecondary,
+                                //color: AppColors.textSecondary,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.color
+                                    ?.withOpacity(0.7),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -137,19 +155,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                     children: [
                                       Text(
                                         '${water.currentIntake} ml',
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary,
-                                        ),
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600,
+                                            //color: AppColors.textPrimary,
+
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyLarge
+                                                ?.color),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         'of ${water.dailyGoal} ml',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.textSecondary,
-                                        ),
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            // color: AppColors.textSecondary,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color
+                                                ?.withOpacity(0.7)),
                                       ),
                                     ],
                                   ),
@@ -163,13 +189,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 32),
 
                       /// Add Water buttons
-                      const Text(
+                      Text(
                         'Add Water',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            //color: AppColors.textPrimary,
+                            color:
+                                Theme.of(context).textTheme.bodyLarge?.color),
                       ),
 
                       const SizedBox(height: 16),
@@ -194,14 +221,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               /// Footer text
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 8),
                 child: Center(
                   child: Text(
                     'Stay hydrated 💧',
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      //color: AppColors.textSecondary,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.7),
                     ),
                   ),
                 ),
@@ -230,9 +262,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               color: Colors.white,
+              //color: Theme.of(context).cardColor,
             ),
           ),
         ),
