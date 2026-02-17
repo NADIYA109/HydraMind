@@ -23,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.microtask(() async {
       try {
         final user = FirebaseAuth.instance.currentUser;
+        //final user = await FirebaseAuth.instance.authStateChanges().first;
 
         if (user != null) {
           await FCMService.saveTokenToFirestore();

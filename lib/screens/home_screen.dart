@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        '${water.currentIntake} ml',
+                                        '${water.currentIntake}${water.unit}',
                                         style: TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.w600,
@@ -167,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'of ${water.dailyGoal} ml',
+                                        'of ${water.dailyGoal}${water.unit}',
                                         style: TextStyle(
                                             fontSize: 13,
                                             // color: AppColors.textSecondary,
@@ -203,9 +203,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       Row(
                         children: [
-                          _waterButton(context, '+250 ml', 250),
+                          // _waterButton(context, '+250 ml', 250),
+                          _waterButton(
+                            context,
+                            '+${water.unit == "ml" ? 250 : 8} ${water.unit}',
+                            water.unit == "ml" ? 250 : 8,
+                          ),
                           const SizedBox(width: 16),
-                          _waterButton(context, '+500 ml', 500),
+                          // _waterButton(context, '+500 ml', 500),
+                          _waterButton(
+                            context,
+                            '+${water.unit == "ml" ? 500 : 16} ${water.unit}',
+                            water.unit == "ml" ? 500 : 16,
+                          ),
                         ],
                       ),
 

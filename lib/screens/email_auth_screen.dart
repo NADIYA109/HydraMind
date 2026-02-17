@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hydramind/screens/main_navigation_screen.dart';
 import 'package:hydramind/screens/profile_setup_screen.dart';
+import 'package:hydramind/services/auth_service.dart';
 import '../core/constants/app_colors.dart';
 
 class EmailAuthScreen extends StatefulWidget {
@@ -17,7 +17,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
 
   @override
   void dispose() {
@@ -26,7 +25,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
     super.dispose();
   }
 
-  // Helper function to handle Auth
   Future<void> _handleAuth() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -38,43 +36,28 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
     setState(() => isLoading = true);
 
     try {
-      UserCredential userCredential;
+      final user = await AuthService.signInWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        isLogin: isLogin,
+      );
 
-      if (isLogin) {
-        // LOGIN
-        userCredential = await _auth.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-      } else {
-        // SIGN UP
-        userCredential = await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-      }
-
-      final User user = userCredential.user!;
-
-      /// SAVE / UPDATE USER IN FIRESTORE (REAL USER)
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'uid': user.uid,
-        'email': user.email,
-        'lastLogin': FieldValue.serverTimestamp(),
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      final profileComplete = await AuthService.isProfileComplete(user!.uid);
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (_) => const ProfileSetupScreen(),
+          builder: (_) => profileComplete
+              ? const MainNavigationScreen()
+              : const ProfileSetupScreen(),
         ),
+        (route) => false,
       );
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Authentication failed")),
+        const SnackBar(content: Text("Authentication failed")),
       );
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -86,10 +69,10 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-          elevation: 0,
-          //backgroundColor: AppColors.background,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          foregroundColor: Theme.of(context).textTheme.bodyLarge?.color),
+        elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
@@ -101,7 +84,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w600,
-                //color: AppColors.textPrimary,
                 color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
@@ -111,17 +93,15 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                   ? 'Enter your credentials to continue'
                   : 'Sign up to start your hydration journey',
               style: TextStyle(
-                  fontSize: 16,
-                  //color: AppColors.textSecondary,
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.color
-                      ?.withOpacity(0.7)),
+                fontSize: 16,
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withOpacity(0.7),
+              ),
             ),
             const SizedBox(height: 32),
-
-            // Email Field
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -133,8 +113,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Password Field
             TextField(
               controller: _passwordController,
               obscureText: true,
@@ -146,14 +124,11 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Primary Button
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed:
-                    isLoading ? null : _handleAuth, // Disable button if loading
+                onPressed: isLoading ? null : _handleAuth,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
@@ -165,7 +140,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
-                          //color: Colors.white,
                           color: Theme.of(context).cardColor,
                           strokeWidth: 2,
                         ),
@@ -180,8 +154,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Toggle Login / Signup
             Center(
               child: TextButton(
                 onPressed: () {

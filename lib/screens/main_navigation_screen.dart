@@ -1,11 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hydramind/screens/setting_screen.dart';
 import '../core/constants/app_colors.dart';
 import 'home_screen.dart';
 import 'insights_screen.dart';
 import 'reminder_screen.dart';
-//import 'profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});

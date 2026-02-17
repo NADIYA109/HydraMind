@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hydramind/providers/theme_provider.dart';
+import 'package:hydramind/screens/daily_goal_dialog.dart';
 import 'package:hydramind/screens/edit_profile_screen.dart';
+import 'package:hydramind/screens/spalsh_screen.dart';
+import 'package:hydramind/screens/unit_selection_dialog.dart';
+import 'package:hydramind/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/water_provider.dart';
@@ -71,7 +75,42 @@ class SettingsScreen extends StatelessWidget {
                     context,
                     icon: Icons.logout,
                     title: "Logout",
-                    onTap: () {},
+                    onTap: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text("Logout"),
+                            content:
+                                const Text("Are you sure you want to logout?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text("Logout"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      if (confirm == true) {
+                        await AuthService.logout();
+
+                        if (!context.mounted) return;
+
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SplashScreen(),
+                          ),
+                          (route) => false,
+                        );
+                      }
+                    },
                   ),
                 ],
               ),
@@ -134,23 +173,35 @@ class SettingsScreen extends StatelessWidget {
                     context,
                     icon: Icons.local_drink_outlined,
                     title: "Daily Goal",
-                    subtitle: "${water.dailyGoal} ml",
-                    onTap: () {},
+                    subtitle: "${water.dailyGoal} ${water.unit}",
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => const DailyGoalDialog(),
+                      );
+                    },
                   ),
                   _divider(),
                   _buildTile(
                     context,
                     icon: Icons.straighten,
                     title: "Unit Preference",
-                    subtitle: "ml",
-                    onTap: () {},
+                    //subtitle: water.unit,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => const UnitSelectionDialog(),
+                      );
+                    },
                   ),
                   _divider(),
                   _buildTile(
                     context,
                     icon: Icons.refresh,
                     title: "Reset Today’s Data",
-                    onTap: () {},
+                    onTap: () {
+                      _showResetDialog(context);
+                    },
                   ),
                 ],
               ),
@@ -248,6 +299,52 @@ class SettingsScreen extends StatelessWidget {
           : null,
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
+    );
+  }
+
+  void _showResetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            "Reset Today’s Data?",
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          content: const Text(
+            "This will clear your water intake for today. Your goal will remain the same.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                await context.read<WaterProvider>().resetDailyWater();
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Today's data has been reset 💧"),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              child: const Text(
+                "Reset",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

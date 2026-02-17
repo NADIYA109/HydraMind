@@ -1,9 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hydramind/screens/email_auth_screen.dart';
+import 'package:hydramind/screens/main_navigation_screen.dart';
 import 'package:hydramind/screens/profile_setup_screen.dart';
+import 'package:hydramind/services/auth_service.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
 
@@ -20,58 +19,29 @@ class _LoginScreenState extends State<LoginScreen> {
   AuthType? selectedAuth;
   bool isLoading = false;
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  //  Google Sign-In (v7+)
-  Future<void> _signInWithGoogle() async {
+  Future<void> _handleGoogleLogin() async {
     if (isLoading) return;
 
-    setState(() => isLoading = true);
+    setState(() {
+      selectedAuth = AuthType.google;
+      isLoading = true;
+    });
 
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+      final user = await AuthService.signInWithGoogle();
 
-      // Initialize (required in v7)
-      await googleSignIn.initialize(
-        serverClientId: null, // keep null for Android
-      );
-
-      // Authenticate user
-      final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
-
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-
-      // Create Firebase credential
-      final credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-      );
-
-      // Sign in to Firebase
-      final userCredential = await _auth.signInWithCredential(credential);
-
-      final user = userCredential.user!;
-
-      // Save user in Firestore
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'uid': user.uid,
-        'email': user.email,
-        'name': user.displayName,
-        'photo': user.photoURL,
-        'lastLogin': FieldValue.serverTimestamp(),
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      final profileComplete = await AuthService.isProfileComplete(user!.uid);
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (_) => const ProfileSetupScreen(),
+          builder: (_) => profileComplete
+              ? const MainNavigationScreen()
+              : const ProfileSetupScreen(),
         ),
-      );
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Google Sign-In failed")),
+        (route) => false,
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -155,13 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ? "Please wait..."
                     : AppStrings.continueWithGoogle,
                 isSelected: selectedAuth == AuthType.google,
-                onTap: () async {
-                  setState(() {
-                    selectedAuth = AuthType.google;
-                  });
-
-                  await _signInWithGoogle();
-                },
+                onTap: _handleGoogleLogin,
               ),
 
               const Spacer(),
@@ -181,7 +145,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  //  Reusable Button
   Widget authButton({
     required String text,
     required bool isSelected,

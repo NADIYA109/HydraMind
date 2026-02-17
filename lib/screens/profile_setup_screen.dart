@@ -74,14 +74,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             photoPath: selectedImage?.path,
           );
 
-      //  Reset water data
-      await context.read<WaterProvider>().resetDailyWater();
-
       //  Calculate water goal
       context.read<WaterProvider>().calculateDailyGoal(
             weight: weight,
+            age: age,
             activity: selectedActivity,
           );
+
+//  Reset water data
+      await context.read<WaterProvider>().resetDailyWater();
 
       if (!mounted) return;
 
