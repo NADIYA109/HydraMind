@@ -10,6 +10,17 @@ class NotificationHelper {
 
   FlutterLocalNotificationsPlugin? _plugin;
 
+  Future<void> cancelAll() async {
+    if (_plugin == null) return;
+
+    await _plugin!.cancelAll();
+  }
+
+  Future<void> cancelById(int id) async {
+    if (_plugin == null) return;
+    await _plugin!.cancel(id);
+  }
+
   Future<void> initNotifications() async {
     _plugin = FlutterLocalNotificationsPlugin();
 
@@ -50,13 +61,36 @@ class NotificationHelper {
     await androidPlugin?.requestExactAlarmsPermission();
   }
 
-  /// SCHEDULE REMINDER
-  Future<void> scheduleAt(TimeOfDay time) async {
-    if (_plugin == null) throw Exception('Notification plugin not initialized');
-
+  Future<void> scheduleWeekly({
+    required int id,
+    required TimeOfDay time,
+    required int weekday, // 1=Mon ... 7=Sun
+  }) async {
     final now = tz.TZDateTime.now(tz.local);
 
-    // Create the scheduled time for today
+    tz.TZDateTime scheduled = _nextInstanceOfWeekday(time, weekday);
+
+    await _plugin!.zonedSchedule(
+      id,
+      'Hydration Reminder 💧',
+      'Time to drink water!',
+      scheduled,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'water_channel',
+          'Water Reminder',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime, //  KEY
+    );
+  }
+
+  tz.TZDateTime _nextInstanceOfWeekday(TimeOfDay time, int weekday) {
+    final now = tz.TZDateTime.now(tz.local);
+
     tz.TZDateTime scheduled = tz.TZDateTime(
       tz.local,
       now.year,
@@ -66,43 +100,10 @@ class NotificationHelper {
       time.minute,
     );
 
-    // If the time has already passed today, schedule it for tomorrow
-    if (scheduled.isBefore(now)) {
+    while (scheduled.weekday != weekday || scheduled.isBefore(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
 
-    debugPrint('Current Time: $now');
-    debugPrint('Scheduled for: $scheduled');
-
-    const androidDetails = AndroidNotificationDetails(
-      'daily_water_reminder', // Channel ID
-      'Water Reminders', // Channel Name
-      channelDescription: 'Hydration reminders for HydraApp',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: true,
-    );
-
-    await _plugin!.zonedSchedule(
-      1,
-      'Hydration Reminder 💧',
-      'Time to drink water!',
-      scheduled,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'high_importance_channel',
-          'Important Reminders',
-          importance: Importance.max,
-          priority: Priority.high,
-          fullScreenIntent: true,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
-  }
-
-  /// CANCEL ALL
-  Future<void> cancelAll() async {
-    await _plugin?.cancelAll();
+    return scheduled;
   }
 }

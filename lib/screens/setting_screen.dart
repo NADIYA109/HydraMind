@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hydramind/providers/theme_provider.dart';
 import 'package:hydramind/screens/daily_goal_dialog.dart';
 import 'package:hydramind/screens/edit_profile_screen.dart';
+import 'package:hydramind/screens/privacy_policy_screen.dart';
 import 'package:hydramind/screens/spalsh_screen.dart';
 import 'package:hydramind/screens/unit_selection_dialog.dart';
 import 'package:hydramind/services/auth_service.dart';
@@ -70,7 +71,7 @@ class SettingsScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  _divider(),
+                  _divider(context),
                   _buildTile(
                     context,
                     icon: Icons.logout,
@@ -181,7 +182,7 @@ class SettingsScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  _divider(),
+                  _divider(context),
                   _buildTile(
                     context,
                     icon: Icons.straighten,
@@ -194,7 +195,7 @@ class SettingsScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  _divider(),
+                  _divider(context),
                   _buildTile(
                     context,
                     icon: Icons.refresh,
@@ -222,31 +223,43 @@ class SettingsScreen extends StatelessWidget {
               _buildSectionContainer(
                 context,
                 children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.privacy_tip_outlined),
-                    title: Text(
-                      "Privacy Policy",
-                      style: TextStyle(
-                        //color: AppColors.textPrimary,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                  _buildTile(
+                    context,
+                    icon: Icons.privacy_tip_outlined,
+                    title: "Privacy Policy",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PrivacyPolicyScreen(),
+                        ),
+                      );
+                    },
                   ),
-                  Divider(),
+                  _divider(context),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.info_outline),
+                    leading: Icon(
+                      Icons.info_outline,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     title: Text(
                       "App Version",
                       style: TextStyle(
-                        // color: AppColors.textPrimary,
                         color: Theme.of(context).textTheme.bodyLarge?.color,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    subtitle: Text("1.0.0"),
+                    subtitle: Text(
+                      "1.0.0",
+                      style: TextStyle(
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withOpacity(0.7),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -348,7 +361,11 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _divider() {
-    return const Divider(height: 1);
+  Widget _divider(BuildContext context) {
+    return Divider(
+      height: 1,
+      thickness: 0.6,
+      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.2),
+    );
   }
 }

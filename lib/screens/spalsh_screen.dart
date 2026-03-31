@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hydramind/providers/reminder_provider.dart';
 import 'package:hydramind/screens/login_screen.dart';
 import 'package:hydramind/screens/main_navigation_screen.dart';
 import 'package:hydramind/screens/profile_setup_screen.dart';
 import 'package:hydramind/services/fcm_service.dart';
+import 'package:hydramind/services/notification_service.dart';
+import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
 
@@ -23,11 +26,25 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.microtask(() async {
       try {
         final user = FirebaseAuth.instance.currentUser;
-        //final user = await FirebaseAuth.instance.authStateChanges().first;
 
         if (user != null) {
           await FCMService.saveTokenToFirestore();
           FCMService.onMessageListener();
+        }
+
+        /// ================== LOAD REMINDERS ==================
+        final reminderProvider = context.read<ReminderProvider>();
+
+        await reminderProvider.loadReminders();
+
+        ///  CLEAR OLD (avoid duplicate notifications)
+        await NotificationHelper.instance.cancelAll();
+
+        ///  RESCHEDULE ALL REMINDERS
+        for (var reminder in reminderProvider.reminders) {
+          if (reminder.isEnabled) {
+            reminderProvider.scheduleReminder(reminder);
+          }
         }
 
         await Future.delayed(const Duration(seconds: 3));
