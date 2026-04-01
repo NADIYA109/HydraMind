@@ -17,19 +17,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
+
   String? _newPhotoPath;
-
   String _selectedActivity = "Moderate";
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _newPhotoPath = pickedFile.path;
-      });
-    }
-  }
 
   @override
   void initState() {
@@ -41,6 +31,88 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _ageController.text = profile.age?.toString() ?? '';
     _weightController.text = profile.weight?.toString() ?? '';
     _selectedActivity = profile.activity ?? "Moderate";
+  }
+
+  /// 📸 Camera / Gallery
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      setState(() {
+        _newPhotoPath = pickedFile.path;
+      });
+    }
+  }
+
+  /// 📸 Options Bottom Sheet
+  void _showImageOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Change Profile Photo",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text("Camera"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo),
+                title: const Text("Gallery"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  ///  Image Preview
+  void _showImagePreview() {
+    final imagePath =
+        _newPhotoPath ?? context.read<ProfileProvider>().photoPath;
+
+    if (imagePath == null) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          body: Center(
+            child: Hero(
+              tag: "profile_image",
+              child: InteractiveViewer(
+                child: Image.file(File(imagePath)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -69,28 +141,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    /// Profile Image
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: theme.cardColor,
-                        backgroundImage: _newPhotoPath != null
-                            ? FileImage(File(_newPhotoPath!))
-                            : profile.photoPath != null
-                                ? FileImage(File(profile.photoPath!))
-                                : null,
-                        child:
-                            _newPhotoPath == null && profile.photoPath == null
-                                ? Icon(Icons.camera_alt,
-                                    size: 30, color: theme.iconTheme.color)
-                                : null,
-                      ),
+                    ///  PROFILE IMAGE + EDIT
+                    Column(
+                      children: [
+                        GestureDetector(
+                          onTap: _showImagePreview,
+                          child: Hero(
+                            tag: "profile_image",
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundColor: theme.cardColor,
+                              backgroundImage: _newPhotoPath != null
+                                  ? FileImage(File(_newPhotoPath!))
+                                  : profile.photoPath != null
+                                      ? FileImage(File(profile.photoPath!))
+                                      : null,
+                              child: _newPhotoPath == null &&
+                                      profile.photoPath == null
+                                  ? Icon(Icons.person,
+                                      size: 30, color: theme.iconTheme.color)
+                                  : null,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: _showImageOptions,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.edit,
+                                  size: 16, color: theme.colorScheme.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                "Edit",
+                                style: TextStyle(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 32),
 
-                    /// Card Container
+                    /// FORM CARD
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -99,7 +197,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       child: Column(
                         children: [
-                          /// Name
                           TextFormField(
                             controller: _nameController,
                             decoration: const InputDecoration(
@@ -110,10 +207,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ? "Enter your name"
                                 : null,
                           ),
-
                           const SizedBox(height: 16),
-
-                          /// Age
                           TextFormField(
                             controller: _ageController,
                             keyboardType: TextInputType.number,
@@ -122,10 +216,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               border: OutlineInputBorder(),
                             ),
                           ),
-
                           const SizedBox(height: 16),
-
-                          /// Weight
                           TextFormField(
                             controller: _weightController,
                             keyboardType: TextInputType.number,
@@ -134,10 +225,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               border: OutlineInputBorder(),
                             ),
                           ),
-
                           const SizedBox(height: 16),
-
-                          /// Activity Dropdown
                           DropdownButtonFormField<String>(
                             value: _selectedActivity,
                             decoration: const InputDecoration(
@@ -164,7 +252,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     const Spacer(),
 
-                    /// Save Button
+                    /// SAVE BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 52,

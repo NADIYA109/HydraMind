@@ -30,10 +30,17 @@ class _HomeScreenState extends State<HomeScreen> {
     context.watch<ProfileProvider>();
 
     return Scaffold(
-      // backgroundColor: AppColors.background,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text(
+          'HydraMind',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.titleLarge?.color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         actions: [
           Consumer<ProfileProvider>(
             builder: (context, profile, _) {
@@ -52,31 +59,16 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ],
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        //backgroundColor: AppColors.background,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
-        title: Text(
-          'HydraMind',
-          style: TextStyle(
-            //color: AppColors.textPrimary,
-            color: Theme.of(context).textTheme.titleLarge?.color,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
       ),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              /// Welcome
               Consumer<ProfileProvider>(
                 builder: (context, profile, _) {
-                  if (profile.isLoading) {
-                    return const CircularProgressIndicator();
-                  }
                   return Text(
                     profile.name != null && profile.name!.isNotEmpty
                         ? 'Welcome, ${profile.name}'
@@ -84,7 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w600,
-                      //color: AppColors.textPrimary,
                       color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   );
@@ -92,11 +83,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(height: 6),
+
               Text(
                 'Let’s track your water intake today',
                 style: TextStyle(
                   fontSize: 16,
-                  //color: AppColors.textSecondary,
                   color: Theme.of(context)
                       .textTheme
                       .bodyMedium
@@ -106,145 +97,269 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(height: 24),
+
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// Water progress card
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          //color: Colors.white,
-                          color: Theme.of(context).cardColor,
-
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Today’s Water Intake',
-                              style: TextStyle(
-                                fontSize: 16,
-                                //color: AppColors.textSecondary,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color
-                                    ?.withOpacity(0.7),
+                      /// ================= WATER CARD =================
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          /// CARD CENTERED
+                          Center(
+                            child: Container(
+                              width: 240,
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 10,
+                                  )
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              height: 140,
-                              width: 140,
-                              child: Stack(
-                                alignment: Alignment.center,
+                              child: Column(
                                 children: [
-                                  CircularProgressIndicator(
-                                    value: water.progress,
-                                    strokeWidth: 10,
-                                    backgroundColor: const Color(0xFFE5E7EB),
-                                    valueColor: const AlwaysStoppedAnimation(
-                                      AppColors.primary,
+                                  Text(
+                                    'Today’s Water Intake',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color
+                                          ?.withOpacity(0.7),
                                     ),
                                   ),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        '${water.currentIntake}${water.unit}',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600,
-                                            //color: AppColors.textPrimary,
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    height: 180,
+                                    width: 180,
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        /// Outer Circle
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: AppColors.primary,
+                                              width: 3,
+                                            ),
+                                          ),
+                                        ),
 
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyLarge
-                                                ?.color),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'of ${water.dailyGoal}${water.unit}',
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            // color: AppColors.textSecondary,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.color
-                                                ?.withOpacity(0.7)),
-                                      ),
-                                    ],
-                                  ),
+                                        /// Water Fill (Animated)
+                                        ClipOval(
+                                          child: Align(
+                                            alignment: Alignment.bottomCenter,
+                                            child: AnimatedContainer(
+                                              duration: const Duration(
+                                                  milliseconds: 800),
+                                              curve: Curves.easeOut,
+                                              height: 180 *
+                                                  water.progress, // fill level
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary
+                                                    .withOpacity(0.8),
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                  top: Radius.circular(20),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+
+                                        /// Center Text
+                                        Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              "${water.currentIntake}${water.unit}",
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.color,
+                                              ),
+                                            ),
+                                            Text(
+                                              "of ${water.dailyGoal}${water.unit}",
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.color
+                                                    ?.withOpacity(0.7),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  )
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      /// Add Water buttons
-                      Text(
-                        'Add Water',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            //color: AppColors.textPrimary,
-                            color:
-                                Theme.of(context).textTheme.bodyLarge?.color),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      Row(
-                        children: [
-                          // _waterButton(context, '+250 ml', 250),
-                          _waterButton(
-                            context,
-                            '+${water.unit == "ml" ? 250 : 8} ${water.unit}',
-                            water.unit == "ml" ? 250 : 8,
                           ),
-                          const SizedBox(width: 16),
-                          // _waterButton(context, '+500 ml', 500),
-                          _waterButton(
-                            context,
-                            '+${water.unit == "ml" ? 500 : 16} ${water.unit}',
-                            water.unit == "ml" ? 500 : 16,
+
+                          /// FLOATING CUP (OUTSIDE)
+                          Positioned(
+                            right: MediaQuery.of(context).size.width / 2 - 120,
+                            bottom: -10,
+                            child: GestureDetector(
+                              onTap: () => _showPremiumDialog(context),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 8,
+                                    )
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.local_drink,
+                                  color: AppColors.primary,
+                                  size: 22,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 40),
 
-                      ///  Mood Card
-                      const AnimatedMoodCard(),
+                      /// ================= ADD WATER =================
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Add Water',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                      ),
 
                       const SizedBox(height: 16),
+                      SizedBox(
+                        height: 110,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: water.cups.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 14),
+                          itemBuilder: (context, index) {
+                            final ml = water.cups[index];
+                            final isSelected = water.selectedCup == ml;
+
+                            return GestureDetector(
+                              onTap: () {
+                                context.read<WaterProvider>().selectCup(ml);
+                                context.read<WaterProvider>().addWater(ml);
+                              },
+                              onLongPress: () {
+                                context.read<WaterProvider>().removeCup(ml);
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 250),
+                                width: 95,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .surfaceVariant,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: AppColors.primary, width: 2)
+                                      : null,
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: AppColors.primary
+                                                .withOpacity(0.4),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 4),
+                                          )
+                                        ]
+                                      : [],
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.local_drink,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Theme.of(context).iconTheme.color,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      '$ml ml',
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Hold to delete",
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: isSelected
+                                            ? Colors.white70
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+
+                      const AnimatedMoodCard(),
                     ],
                   ),
                 ),
               ),
 
-              /// Footer text
-              Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Center(
-                  child: Text(
-                    'Stay hydrated 💧',
-                    style: TextStyle(
-                      fontSize: 13,
-                      //color: AppColors.textSecondary,
-                      color: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color
-                          ?.withOpacity(0.7),
-                    ),
+              /// FOOTER
+              Center(
+                child: Text(
+                  'Stay hydrated 💧',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.color
+                        ?.withOpacity(0.7),
                   ),
                 ),
               ),
@@ -255,31 +370,108 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Water button
-  Widget _waterButton(BuildContext context, String text, int amount) {
-    return Expanded(
-      child: SizedBox(
-        height: 52,
-        child: ElevatedButton(
-          onPressed: () {
-            context.read<WaterProvider>().addWater(amount);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+  /// ================= PREMIUM BOTTOM SHEET =================
+  void _showPremiumDialog(BuildContext context) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        final theme = Theme.of(context);
+
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: IntrinsicHeight(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Title
+                  Center(
+                    child: Text(
+                      "Customise your cup",
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  /// Input
+                  TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.number,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: "Enter amount (ml)",
+                      filled: true,
+                      fillColor: theme.colorScheme.surfaceVariant,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  /// Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text("Cancel"),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final value = int.tryParse(controller.text);
+                            if (value != null && value > 0) {
+                              context.read<WaterProvider>().addCustomCup(value);
+                            }
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: theme.colorScheme.onPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text("Add"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white,
-              //color: Theme.of(context).cardColor,
-            ),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

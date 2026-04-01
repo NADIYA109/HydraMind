@@ -8,6 +8,30 @@ class WaterProvider extends ChangeNotifier {
   int _recommendedGoalMl =
       2000; // fixed calculated goal // Always stored in ML internally
   String _unit = 'ml'; // ml or oz
+  int _selectedCup = -1;
+  List<int> _cups = [150, 200, 250, 300, 400];
+
+  List<int> get cups => _cups;
+
+  int get selectedCup => _selectedCup;
+
+  void addCustomCup(int ml) {
+    if (!_cups.contains(ml)) {
+      _cups.add(ml);
+      _cups.sort();
+      notifyListeners();
+    }
+  }
+
+  void removeCup(int ml) {
+    _cups.remove(ml);
+    notifyListeners();
+  }
+
+  void selectCup(int ml) {
+    _selectedCup = ml;
+    notifyListeners();
+  }
 
   final FirestoreService _firestoreService = FirestoreService();
 
