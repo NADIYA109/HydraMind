@@ -337,7 +337,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                await context.read<WaterProvider>().resetDailyWater();
+                await context.read<WaterProvider>().resetDailyWater(context);
 
                 if (context.mounted) {
                   Navigator.pop(context);

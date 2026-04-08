@@ -80,9 +80,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             age: age,
             activity: selectedActivity,
           );
-
-//  Reset water data
-      await context.read<WaterProvider>().resetDailyWater();
+      //  Reset water data
+      await context.read<WaterProvider>().resetDailyWater(context);
 
       if (!mounted) return;
 

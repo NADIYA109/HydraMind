@@ -212,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
 
-                          /// FLOATING CUP (OUTSIDE)
+                          /// FLOATING CUP
                           Positioned(
                             right: MediaQuery.of(context).size.width / 2 - 120,
                             bottom: -10,
@@ -271,7 +271,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             return GestureDetector(
                               onTap: () {
                                 context.read<WaterProvider>().selectCup(ml);
-                                context.read<WaterProvider>().addWater(ml);
+                                context
+                                    .read<WaterProvider>()
+                                    .addWater(ml, context);
                               },
                               onLongPress: () {
                                 context.read<WaterProvider>().removeCup(ml);
@@ -370,7 +372,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// ================= PREMIUM BOTTOM SHEET =================
+  /// ================= BOTTOM SHEET =================
   void _showPremiumDialog(BuildContext context) {
     final controller = TextEditingController();
 

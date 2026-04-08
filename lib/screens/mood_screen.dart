@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hydramind/providers/water_provider.dart';
+import 'package:hydramind/services/firestore_services.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/mood_provider.dart';
@@ -94,12 +96,23 @@ class MoodScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: moodProvider.mood == null
                     ? null
-                    : () {
+                    : () async {
+                        final water = context.read<WaterProvider>();
+
+                        await FirestoreService().saveWaterData(
+                          intake: water.currentIntake,
+                          goal: water.dailyGoal,
+                          date: water.today,
+                          mood: moodProvider.mood,
+                          energy: moodProvider.energyLevel,
+                        );
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Mood saved successfully'),
                           ),
                         );
+
                         Navigator.pop(context);
                       },
                 style: ElevatedButton.styleFrom(

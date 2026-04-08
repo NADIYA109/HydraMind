@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hydramind/providers/mood_provider.dart';
 import 'package:hydramind/services/firestore_services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class WaterProvider extends ChangeNotifier {
   int _currentIntakeMl = 0; // Always stored in ML internally
@@ -121,7 +123,7 @@ class WaterProvider extends ChangeNotifier {
 
   // ================== ADD WATER ==================
 
-  Future<void> addWater(int amount) async {
+  Future<void> addWater(int amount, BuildContext context) async {
     int amountInMl = _unit == 'ml' ? amount : (amount * 29.57).round();
 
     _currentIntakeMl += amountInMl;
@@ -130,10 +132,14 @@ class WaterProvider extends ChangeNotifier {
       _currentIntakeMl = _dailyGoalMl;
     }
 
+    final mood = context.read<MoodProvider>();
+
     await _firestoreService.saveWaterData(
       intake: _currentIntakeMl,
       goal: _dailyGoalMl,
       date: today,
+      mood: mood.mood ?? "Not Set",
+      energy: mood.energyLevel,
     );
 
     notifyListeners();
@@ -155,13 +161,17 @@ class WaterProvider extends ChangeNotifier {
 
   // ================== RESET ==================
 
-  Future<void> resetDailyWater() async {
+  Future<void> resetDailyWater(BuildContext context) async {
     _currentIntakeMl = 0;
+
+    final mood = context.read<MoodProvider>();
 
     await _firestoreService.saveWaterData(
       intake: 0,
       goal: _dailyGoalMl,
       date: today,
+      mood: mood.mood ?? "Not Set",
+      energy: mood.energyLevel,
     );
 
     notifyListeners();

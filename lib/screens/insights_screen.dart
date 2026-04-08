@@ -14,7 +14,7 @@ class InsightsScreen extends StatelessWidget {
     final mood = context.watch<MoodProvider>();
     final insights = context.watch<InsightsProvider>();
 
-    final String insightText = insights.generateInsight(
+    final insightsList = insights.generateInsights(
       water: water,
       mood: mood,
     );
@@ -93,36 +93,35 @@ class InsightsScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 32),
+            //const SizedBox(height: 32),
 
             /// Insight message
-            Text(
-              'Insight',
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  //color: AppColors.textPrimary,
-                  color: Theme.of(context).textTheme.bodyLarge?.color),
-            ),
-
-            const SizedBox(height: 12),
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                insightText,
-                style: TextStyle(
-                    fontSize: 16,
-                    height: 1.4,
-                    //color: AppColors.textPrimary,
-                    color: Theme.of(context).textTheme.bodyLarge?.color),
-              ),
-            ),
+            /// ///MULTIPLE INSIGHT CARDS
+            ...insightsList.map((text) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        text,
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.4,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
 
             const Spacer(),
 
