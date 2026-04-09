@@ -5,6 +5,8 @@ import 'package:hydramind/providers/insights_provider.dart';
 import 'package:hydramind/providers/mood_provider.dart';
 import 'package:hydramind/providers/profile_provider.dart';
 import 'package:hydramind/providers/reminder_provider.dart';
+import 'package:hydramind/providers/report_provider.dart';
+import 'package:hydramind/providers/streak_provider.dart';
 import 'package:hydramind/providers/theme_provider.dart';
 import 'package:hydramind/providers/water_provider.dart';
 import 'package:hydramind/screens/spalsh_screen.dart';
@@ -28,6 +30,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => InsightsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ReportProvider()),
+        ChangeNotifierProvider(create: (_) => StreakProvider()),
       ],
       child: const MyApp(),
     ),

@@ -1,19 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:hydramind/providers/streak_provider.dart';
+import 'package:hydramind/screens/report_screen.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/water_provider.dart';
 import '../providers/mood_provider.dart';
 import '../providers/insights_provider.dart';
 
-class InsightsScreen extends StatelessWidget {
+class InsightsScreen extends StatefulWidget {
   const InsightsScreen({super.key});
+
+  @override
+  State<InsightsScreen> createState() => _InsightsScreenState();
+}
+
+class _InsightsScreenState extends State<InsightsScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      context.read<StreakProvider>().loadStreak();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final water = context.watch<WaterProvider>();
     final mood = context.watch<MoodProvider>();
     final insights = context.watch<InsightsProvider>();
-
+    final streak = context.watch<StreakProvider>().streak;
     final insightsList = insights.generateInsights(
       water: water,
       mood: mood,
@@ -24,15 +40,10 @@ class InsightsScreen extends StatelessWidget {
         : ((water.currentIntake / water.dailyGoal) * 100).round();
 
     return Scaffold(
-      //backgroundColor: AppColors.background,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
       appBar: AppBar(
         elevation: 0,
-        // backgroundColor: AppColors.background,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
-        // foregroundColor: AppColors.textPrimary,
         foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
         title: const Text('Insights'),
       ),
@@ -93,7 +104,62 @@ class InsightsScreen extends StatelessWidget {
               ),
             ),
 
-            //const SizedBox(height: 32),
+            const SizedBox(height: 16),
+
+            /// ================= STREAK CARD =================
+            Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.1),
+                      child: Text("🔥"),
+                    ),
+                    SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("$streak Day Streak",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color,
+                            )),
+                        Text(
+                          streak == 0
+                              ? "Start your streak today 💧"
+                              : "Keep it going! 💪",
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.color
+                                ?.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                )),
+
+            const SizedBox(height: 16),
 
             /// Insight message
             /// ///MULTIPLE INSIGHT CARDS
@@ -123,6 +189,91 @@ class InsightsScreen extends StatelessWidget {
               );
             }).toList(),
 
+            const SizedBox(height: 20),
+
+            ///  Weekly Report Card
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ReportScreen(),
+                  ),
+                );
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    /// Icon
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.bar_chart, size: 20),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    /// Text
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Weekly Report",
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Track your hydration trends",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.color
+                                  ?.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    /// Arrow
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.6),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             const Spacer(),
 
             /// Footer
@@ -131,7 +282,6 @@ class InsightsScreen extends StatelessWidget {
                 'Insights update daily based on your habits 💧',
                 style: TextStyle(
                     fontSize: 13,
-                    //color: AppColors.textSecondary,
                     color: Theme.of(context)
                         .textTheme
                         .bodyMedium

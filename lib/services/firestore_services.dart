@@ -82,4 +82,29 @@ class FirestoreService {
       'date': date,
     }, SetOptions(merge: true));
   }
+
+  Future<List<Map<String, dynamic>>> fetchWeeklyLogs() async {
+    if (_userId == null) return [];
+
+    final now = DateTime.now();
+    final last7Days = List.generate(7, (i) {
+      return DateFormat('yyyy-MM-dd').format(now.subtract(Duration(days: i)));
+    });
+
+    final snapshot = await _db
+        .collection('users')
+        .doc(_userId)
+        .collection('daily_logs')
+        .get();
+
+    List<Map<String, dynamic>> result = [];
+
+    for (var doc in snapshot.docs) {
+      if (last7Days.contains(doc.id)) {
+        result.add(doc.data());
+      }
+    }
+
+    return result;
+  }
 }
