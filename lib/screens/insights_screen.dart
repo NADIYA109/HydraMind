@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hydramind/providers/streak_provider.dart';
+import 'package:hydramind/screens/achievement_screen.dart';
 import 'package:hydramind/screens/report_screen.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
@@ -107,57 +108,79 @@ class _InsightsScreenState extends State<InsightsScreen> {
             const SizedBox(height: 16),
 
             /// ================= STREAK CARD =================
-            Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color
-                          ?.withOpacity(0.1),
-                      child: Text("🔥"),
-                    ),
-                    SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("$streak Day Streak",
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AchievementScreen(),
+                  ),
+                );
+              },
+              child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withOpacity(0.1),
+                        child: Text("🔥"),
+                      ),
+                      SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("$streak Day Streak",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color,
+                              )),
+                          Text(
+                            streak == 0
+                                ? "Start your streak today 💧"
+                                : "Keep it going! 💪",
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  Theme.of(context).textTheme.bodyLarge?.color,
-                            )),
-                        Text(
-                          streak == 0
-                              ? "Start your streak today 💧"
-                              : "Keep it going! 💪",
-                          style: TextStyle(
-                            color: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.color
-                                ?.withOpacity(0.7),
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.color
+                                  ?.withOpacity(0.7),
+                            ),
                           ),
-                        ),
-                      ],
-                    )
-                  ],
-                )),
+                        ],
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withOpacity(0.6),
+                      ),
+                    ],
+                  )),
+            ),
 
             const SizedBox(height: 16),
 

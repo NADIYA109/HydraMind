@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hydramind/core/constants/app_theme.dart';
+import 'package:hydramind/providers/achievement_provider.dart';
 import 'package:hydramind/providers/insights_provider.dart';
 import 'package:hydramind/providers/mood_provider.dart';
 import 'package:hydramind/providers/profile_provider.dart';
@@ -32,6 +33,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
+        ChangeNotifierProvider(create: (_) => AchievementProvider()),
       ],
       child: const MyApp(),
     ),
