@@ -29,28 +29,51 @@ class StreakProvider extends ChangeNotifier {
   int _calculateStreak(List<Map<String, dynamic>> logs) {
     int streak = 0;
 
+    if (logs.isEmpty) return 0;
+
     // sort latest first
     logs.sort((a, b) => b['date'].compareTo(a['date']));
 
-    DateTime? prevDate;
+    DateTime today = DateTime.now();
+
+    //  Check if today exists & completed
+    Map<String, dynamic>? todayLog;
 
     for (var log in logs) {
+      DateTime date = DateTime.parse(log['date']);
+
+      if (date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day) {
+        todayLog = log;
+        break;
+      }
+    }
+
+    if (todayLog == null) return 0;
+
+    int intake = todayLog['intake'] ?? 0;
+    int goal = todayLog['goal'] ?? 0;
+
+    if (intake < goal) return 0;
+
+    // count streak from today backwards
+    DateTime prevDate = DateTime.parse(todayLog['date']);
+    streak = 1;
+
+    for (var log in logs.skip(1)) {
       DateTime currentDate = DateTime.parse(log['date']);
+
+      final diff = prevDate.difference(currentDate).inDays;
 
       int intake = log['intake'] ?? 0;
       int goal = log['goal'] ?? 0;
 
-      if (prevDate != null) {
-        final diff = prevDate.difference(currentDate).inDays;
-
-        if (diff != 1) break; // gap -> streak break
-      }
-
-      if (intake >= goal) {
+      if (diff == 1 && intake >= goal) {
         streak++;
         prevDate = currentDate;
       } else {
-        break; // goal miss -> break
+        break;
       }
     }
 

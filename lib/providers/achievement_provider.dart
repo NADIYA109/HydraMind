@@ -3,16 +3,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AchievementProvider extends ChangeNotifier {
   List<String> unlockedBadges = [];
+  List<String> previousBadges = [];
 
   Set<String> shownBadges = {};
   int lastCheckedStreak = -1;
   bool isLoaded = false;
+  bool isBadgesLoaded = false;
 
   AchievementProvider() {
     loadShownBadges();
   }
 
   void checkAchievements(int streak) {
+    previousBadges = List.from(unlockedBadges);
     if (streak >= 1 && !unlockedBadges.contains("Starter 💧")) {
       unlockedBadges.add("Starter 💧");
     }

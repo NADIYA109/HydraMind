@@ -10,9 +10,8 @@ class AuthService {
   /// CURRENT USER
   static User? get currentUser => _auth.currentUser;
 
-  // ===============================
   // EMAIL LOGIN / SIGNUP
-  // ===============================
+
   static Future<User?> signInWithEmail({
     required String email,
     required String password,
@@ -37,9 +36,8 @@ class AuthService {
     return userCredential.user;
   }
 
-  // ===============================
   // GOOGLE LOGIN
-  // ===============================
+
   static Future<User?> signInWithGoogle() async {
     await _googleSignIn.initialize(serverClientId: null);
 
@@ -58,9 +56,8 @@ class AuthService {
     return userCredential.user;
   }
 
-  // ===============================
   // SAVE USER IN FIRESTORE
-  // ===============================
+
   static Future<void> _saveUser(User user) async {
     await _firestore.collection('users').doc(user.uid).set({
       'uid': user.uid,
@@ -70,9 +67,14 @@ class AuthService {
     }, SetOptions(merge: true));
   }
 
-  // ===============================
+// RESET PASSWORD
+
+  static Future<void> resetPassword(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
   // CHECK PROFILE COMPLETE
-  // ===============================
+
   static Future<bool> isProfileComplete(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
 
@@ -84,9 +86,8 @@ class AuthService {
         data?['activity'] != null;
   }
 
-  // ===============================
   // LOGOUT
-  // ===============================
+
   static Future<void> logout() async {
     await _auth.signOut();
     try {
