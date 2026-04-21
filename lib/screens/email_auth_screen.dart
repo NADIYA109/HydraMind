@@ -113,7 +113,8 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      //backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -152,9 +153,15 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
               decoration: InputDecoration(
                 labelText: 'Email',
                 errorText: emailError,
+                labelStyle: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
                 prefixIcon: const Icon(Icons.email_outlined),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -179,9 +186,17 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
             TextField(
               controller: _passwordController,
               obscureText: !isPasswordVisible,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
               decoration: InputDecoration(
                 labelText: 'Password',
                 errorText: passwordError,
+
+                labelStyle: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+
                 prefixIcon: const Icon(Icons.lock_outline),
 
                 //  Show/Hide toggle
@@ -229,11 +244,16 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                       ),
                     );
                   },
-                  child: const Text(
+                  child: Text(
                     "Forgot Password?",
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.7),
+                      //color: Colors.grey,
                     ),
                   ),
                 ),
@@ -257,8 +277,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
-                          //color: Colors.white,
-                          color: Theme.of(context).cardColor,
+                          color: Colors.white,
                           strokeWidth: 2,
                         ),
                       )
@@ -266,7 +285,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                         isLogin ? 'Login' : 'Sign Up',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Theme.of(context).cardColor,
+                          color: Colors.white,
                         ),
                       ),
               ),
@@ -285,8 +304,9 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                   isLogin
                       ? "Don't have an account? Sign up"
                       : 'Already have an account? Login',
-                  style:
-                      const TextStyle(color: Color.fromARGB(255, 39, 66, 73)),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
                 ),
               ),
             ),

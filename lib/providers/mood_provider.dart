@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class MoodProvider extends ChangeNotifier {
-  String? _mood;          
-  int _energyLevel = 3;  
+  String? _mood;
+  int _energyLevel = 3;
   String _date = _today();
 
   String? get mood => _mood;
@@ -27,6 +27,12 @@ class MoodProvider extends ChangeNotifier {
     _mood = null;
     _energyLevel = 3;
     _date = _today();
+    notifyListeners();
+  }
+
+  void loadFromFirestore(Map<String, dynamic> data) {
+    _mood = data['mood'] == "Not Set" ? null : data['mood'];
+    _energyLevel = data['energy'] ?? 3;
     notifyListeners();
   }
 

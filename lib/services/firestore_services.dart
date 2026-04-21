@@ -107,4 +107,19 @@ class FirestoreService {
 
     return result;
   }
+
+  Future<Map<String, dynamic>?> fetchTodayLog() async {
+    if (_userId == null) return null;
+
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    final doc = await _db
+        .collection('users')
+        .doc(_userId)
+        .collection('daily_logs')
+        .doc(today)
+        .get();
+
+    return doc.data();
+  }
 }

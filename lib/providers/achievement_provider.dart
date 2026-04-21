@@ -12,6 +12,7 @@ class AchievementProvider extends ChangeNotifier {
 
   AchievementProvider() {
     loadShownBadges();
+    loadUnlockedBadges();
   }
 
   void checkAchievements(int streak) {
@@ -36,6 +37,8 @@ class AchievementProvider extends ChangeNotifier {
       unlockedBadges.add("Master 💎");
     }
 
+    saveUnlockedBadges();
+
     notifyListeners();
   }
 
@@ -47,8 +50,23 @@ class AchievementProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loadUnlockedBadges() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getStringList('unlockedBadges') ?? [];
+
+    unlockedBadges = data;
+    isBadgesLoaded = true;
+
+    notifyListeners();
+  }
+
+  Future<void> saveUnlockedBadges() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('unlockedBadges', unlockedBadges);
+  }
+
   Future<void> saveShownBadges() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('shownBadges', shownBadges.toList());
+    await prefs.setStringList('shownBadges', shownBadges.toList());
   }
 }

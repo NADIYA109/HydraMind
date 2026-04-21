@@ -60,7 +60,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      //backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -102,7 +103,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: 'Email',
-                hintText: 'example@gmail.com',
                 errorText: errorText,
                 prefixIcon: const Icon(Icons.email_outlined),
                 border: OutlineInputBorder(
@@ -150,7 +150,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         "Send Reset Link",
                         style: TextStyle(
                           fontSize: 16,
-                          color: Theme.of(context).cardColor,
+                          color: Colors.white,
                         ),
                       ),
               ),
@@ -162,10 +162,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text(
+                child: Text(
                   "Back to Login",
                   style: TextStyle(
-                    color: Color.fromARGB(255, 39, 66, 73),
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
               ),
