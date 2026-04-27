@@ -66,6 +66,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       final weight = int.parse(weightController.text);
 
       // Save profile via Provider (Firestore handled inside provider)
+
       await context.read<ProfileProvider>().saveProfile(
             name: name,
             age: age,
@@ -115,7 +116,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -123,6 +124,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     children: [
                       const SizedBox(height: 30),
 
+                      /// TITLE
                       const Text(
                         'Tell us about yourself',
                         style: TextStyle(
@@ -137,7 +139,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       const Text(
                         'This helps us calculate your daily water goal',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -148,20 +150,54 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       Center(
                         child: GestureDetector(
                           onTap: _pickImage,
-                          child: CircleAvatar(
-                            radius: 55,
-                            backgroundColor: Colors.grey.shade200,
-                            backgroundImage: selectedImage != null
-                                ? FileImage(selectedImage!)
-                                : null,
-                            child: selectedImage == null
-                                ? const Icon(Icons.camera_alt, size: 30)
-                                : null,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                height: 110,
+                                width: 110,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.grey.shade200,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    )
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: selectedImage != null
+                                      ? Image.file(selectedImage!,
+                                          fit: BoxFit.cover)
+                                      : const Icon(Icons.person, size: 40),
+                                ),
+                              ),
+
+                              /// CAMERA ICON
+                              Positioned(
+                                bottom: 4,
+                                right: 4,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 36),
 
                       /// NAME
                       TextFormField(
@@ -188,7 +224,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         validator: (value) {
                           final age = int.tryParse(value ?? '');
                           if (age == null || age < 8 || age > 99) {
-                            return 'Enter valid age (8–99)';
+                            return 'Enter valid age';
                           }
                           return null;
                         },
@@ -204,7 +240,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         validator: (value) {
                           final weight = int.tryParse(value ?? '');
                           if (weight == null || weight < 20 || weight > 200) {
-                            return 'Enter valid weight (20–200)';
+                            return 'Enter valid weight';
                           }
                           return null;
                         },
@@ -212,6 +248,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       const SizedBox(height: 24),
 
+                      /// ACTIVITY
                       const Text(
                         'Activity Level',
                         style: TextStyle(
@@ -225,6 +262,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       DropdownButtonFormField<String>(
                         value: selectedActivity,
                         decoration: _inputDecoration(null),
+                        dropdownColor: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(14),
                         items: const [
                           DropdownMenuItem(value: 'Low', child: Text('Low')),
                           DropdownMenuItem(
@@ -243,18 +282,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
             ),
 
-            /// CONTINUE BUTTON
+            /// BUTTON
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
               child: SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 55,
                 child: ElevatedButton(
                   onPressed: isLoading ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
+                    elevation: 6,
+                    shadowColor: AppColors.primary.withOpacity(0.4),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   child: isLoading
@@ -265,7 +306,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       : const Text(
                           'Continue',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w500,
                             color: Colors.white,
                           ),
                         ),
@@ -278,26 +320,29 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  ///  INPUT STYLE
+  /// INPUT STYLE
   InputDecoration _inputDecoration(String? label) {
     return InputDecoration(
       labelText: label,
+      filled: true,
+      fillColor: Theme.of(context).cardColor,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       labelStyle: const TextStyle(color: AppColors.textSecondary),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.black54),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: Colors.red),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.red, width: 2),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
       ),
     );
   }

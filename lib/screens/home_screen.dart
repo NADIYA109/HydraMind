@@ -215,26 +215,60 @@ class _HomeScreenState extends State<HomeScreen> {
                           /// FLOATING CUP
                           Positioned(
                             right: MediaQuery.of(context).size.width / 2 - 120,
-                            bottom: -10,
+                            bottom: 0,
                             child: GestureDetector(
                               onTap: () => _showPremiumDialog(context),
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 8,
-                                    )
-                                  ],
-                                ),
-                                child: Icon(
-                                  Icons.local_drink,
-                                  color: AppColors.primary,
-                                  size: 22,
-                                ),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  /// Main Drink Cup Circle
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        )
+                                      ],
+                                    ),
+                                    child: Icon(
+                                      Icons.local_drink,
+                                      color: AppColors.primary,
+                                      size: 24,
+                                    ),
+                                  ),
+
+                                  /// The Overlay Refresh Icon
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(3),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: Colors.white, width: 1.5),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.15),
+                                            blurRadius: 4,
+                                          )
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.sync,
+                                        color: AppColors.primary,
+                                        size: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
