@@ -122,4 +122,26 @@ class FirestoreService {
 
     return doc.data();
   }
+
+  Future<void> saveAchievements({
+    required List<String> unlockedBadges,
+    required List<String> shownBadges,
+  }) async {
+    if (_userId == null) return;
+
+    await _db.collection('users').doc(_userId).set({
+      'achievements': {
+        'unlockedBadges': unlockedBadges,
+        'shownBadges': shownBadges,
+      }
+    }, SetOptions(merge: true));
+  }
+
+  Future<Map<String, dynamic>?> fetchAchievements() async {
+    if (_userId == null) return null;
+
+    final doc = await _db.collection('users').doc(_userId).get();
+
+    return doc.data()?['achievements'];
+  }
 }

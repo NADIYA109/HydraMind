@@ -16,18 +16,48 @@ class _AchievementScreenState extends State<AchievementScreen> {
   bool _popupShownInSession = false;
   late ConfettiController _confettiController;
 
+  void _checkAndShowPopup() {
+    final achievement = context.read<AchievementProvider>();
+
+    if (!achievement.isBadgesLoaded) return;
+
+    final newBadges = achievement.unlockedBadges
+        .where((b) => !achievement.shownBadges.contains(b))
+        .toList();
+
+    if (newBadges.isNotEmpty && !_popupShownInSession) {
+      _popupShownInSession = true;
+
+      final badge = newBadges.first;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _confettiController.play();
+
+        showDialog(
+          context: context,
+          builder: (_) => _buildBadgePopup(context, badge),
+        );
+      });
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
 
     _confettiController =
         ConfettiController(duration: const Duration(seconds: 2));
 
-    Future.microtask(() {
+    Future.microtask(() async {
       final achievement = context.read<AchievementProvider>();
       final streak = context.read<StreakProvider>().streak;
 
+      await achievement.loadUnlockedBadges(); // data load
+
       achievement.checkAchievements(streak);
       achievement.lastCheckedStreak = streak;
+
+      _checkAndShowPopup(); // popup trigger
     });
   }
 
@@ -41,12 +71,6 @@ class _AchievementScreenState extends State<AchievementScreen> {
   Widget build(BuildContext context) {
     final achievement = context.watch<AchievementProvider>();
     final streak = context.watch<StreakProvider>().streak;
-    if (achievement.lastCheckedStreak != streak) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        achievement.checkAchievements(streak);
-        achievement.lastCheckedStreak = streak;
-      });
-    }
     final milestones = [1, 3, 7, 14, 30];
 
     final nextGoal = milestones.firstWhere(
@@ -63,35 +87,6 @@ class _AchievementScreenState extends State<AchievementScreen> {
       "Pro 💪",
       "Master 💎",
     ];
-
-    // if (achievement.isLoaded && achievement.lastCheckedStreak != streak) {
-    //   achievement.checkAchievements(streak);
-    //   achievement.lastCheckedStreak = streak;
-    // }
-
-    List<String> newBadges = achievement.unlockedBadges
-        .where((b) => !achievement.shownBadges.contains(b))
-        .toList();
-
-    String? badge = newBadges.isNotEmpty ? newBadges.first : null;
-
-    if (achievement.isLoaded &&
-        badge != null &&
-        !_popupShownInSession &&
-        !achievement.shownBadges.contains(badge)) {
-      _popupShownInSession = true;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _confettiController.play();
-
-        showDialog(
-          context: context,
-          builder: (_) => _buildBadgePopup(context, badge),
-        );
-        achievement.shownBadges.add(badge);
-        achievement.saveShownBadges();
-      });
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -393,7 +388,15 @@ class _AchievementScreenState extends State<AchievementScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () => Navigator.pop(context),
+              // onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                final achievement = context.read<AchievementProvider>();
+
+                achievement.shownBadges.add(badge);
+                achievement.saveShownBadges();
+
+                Navigator.pop(context);
+              },
               child: const Text("Awesome! 🚀"),
             )
           ],

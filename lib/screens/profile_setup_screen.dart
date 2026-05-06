@@ -66,7 +66,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       final weight = int.parse(weightController.text);
 
       // Save profile via Provider (Firestore handled inside provider)
-
       await context.read<ProfileProvider>().saveProfile(
             name: name,
             age: age,
@@ -104,11 +103,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
         title: const Text('Profile Setup'),
       ),
       body: SafeArea(
@@ -125,12 +124,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       const SizedBox(height: 30),
 
                       /// TITLE
-                      const Text(
+                      Text(
                         'Tell us about yourself',
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
 
@@ -158,7 +157,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                 width: 110,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.grey.shade200,
+                                  color: Theme.of(context).cardColor,
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.08),

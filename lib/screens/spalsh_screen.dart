@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hydramind/providers/achievement_provider.dart';
 import 'package:hydramind/providers/reminder_provider.dart';
+import 'package:hydramind/providers/streak_provider.dart';
 import 'package:hydramind/screens/login_screen.dart';
 import 'package:hydramind/screens/main_navigation_screen.dart';
 import 'package:hydramind/screens/profile_setup_screen.dart';
@@ -78,6 +80,12 @@ class _SplashScreenState extends State<SplashScreen> {
             data?['age'] != null &&
             data?['weight'] != null &&
             data?['activity'] != null;
+
+        /// Load user achievements and streak before entering main screen
+        if (profileComplete) {
+          await context.read<AchievementProvider>().loadUnlockedBadges();
+          await context.read<StreakProvider>().loadStreak();
+        }
 
         Navigator.pushReplacement(
           context,

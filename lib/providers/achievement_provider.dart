@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hydramind/services/firestore_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AchievementProvider extends ChangeNotifier {
@@ -9,9 +10,9 @@ class AchievementProvider extends ChangeNotifier {
   int lastCheckedStreak = -1;
   bool isLoaded = false;
   bool isBadgesLoaded = false;
+  final FirestoreService _firestoreService = FirestoreService();
 
   AchievementProvider() {
-    loadShownBadges();
     loadUnlockedBadges();
   }
 
@@ -51,22 +52,36 @@ class AchievementProvider extends ChangeNotifier {
   }
 
   Future<void> loadUnlockedBadges() async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = prefs.getStringList('unlockedBadges') ?? [];
+    final data = await _firestoreService.fetchAchievements();
 
-    unlockedBadges = data;
+    if (data != null) {
+      unlockedBadges = List<String>.from(data['unlockedBadges'] ?? []);
+      shownBadges = Set<String>.from(data['shownBadges'] ?? []);
+    }
+
     isBadgesLoaded = true;
-
     notifyListeners();
   }
 
   Future<void> saveUnlockedBadges() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('unlockedBadges', unlockedBadges);
+    await _firestoreService.saveAchievements(
+      unlockedBadges: unlockedBadges,
+      shownBadges: shownBadges.toList(),
+    );
   }
 
   Future<void> saveShownBadges() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('shownBadges', shownBadges.toList());
+    await _firestoreService.saveAchievements(
+      unlockedBadges: unlockedBadges,
+      shownBadges: shownBadges.toList(),
+    );
+  }
+
+  void resetAchievements() {
+    unlockedBadges = [];
+    shownBadges = {};
+    lastCheckedStreak = -1;
+    isBadgesLoaded = false;
+    notifyListeners();
   }
 }

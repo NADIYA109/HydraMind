@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hydramind/providers/achievement_provider.dart';
+import 'package:hydramind/providers/streak_provider.dart';
 import 'package:hydramind/providers/theme_provider.dart';
 import 'package:hydramind/screens/daily_goal_dialog.dart';
 import 'package:hydramind/screens/edit_profile_screen.dart';
@@ -102,6 +104,12 @@ class SettingsScreen extends StatelessWidget {
                         await AuthService.logout();
 
                         if (!context.mounted) return;
+
+                        /// 🔥 ADD THIS (VERY IMPORTANT)
+                        context.read<AchievementProvider>().resetAchievements();
+
+                        /// (optional but recommended)
+                        context.read<StreakProvider>().loadStreak();
 
                         Navigator.pushAndRemoveUntil(
                           context,
