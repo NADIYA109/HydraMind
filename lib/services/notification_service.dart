@@ -26,8 +26,7 @@ class NotificationHelper {
 
     // 1. Initialize Timezones
     tz.initializeTimeZones();
-
-    // 2. Set the local location with a safety net
+// 2. Set the local location with a safety net
     try {
       final String timeZoneName = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(timeZoneName));

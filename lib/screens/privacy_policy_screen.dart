@@ -24,52 +24,65 @@ class PrivacyPolicyScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _sectionTitle(context, "1. Introduction"),
+              _sectionTitle(context, "Introduction"),
               _sectionText(
                 context,
-                "HydraMind values your privacy. This Privacy Policy explains how we collect, use, and protect your information when you use our application.",
+                "HydraMind values your privacy and is committed to protecting your personal information. This Privacy Policy explains how the app collects, uses, and protects user data.",
               ),
               const SizedBox(height: 24),
-              _sectionTitle(context, "2. Information We Collect"),
+              _sectionTitle(context, "Information We Collect"),
               _sectionText(
                 context,
-                "We may collect personal information such as your name, age, weight, activity level, and hydration data to provide personalized hydration recommendations.",
+                "HydraMind may collect limited user information, including user profile information, email address for authentication, hydration and mood tracking data, reminder preferences, and app settings. This information is used only to provide and improve app functionality and user experience. ",
               ),
               const SizedBox(height: 24),
-              _sectionTitle(context, "3. How We Use Your Information"),
+              _sectionTitle(context, "Authentication"),
               _sectionText(
                 context,
-                "Your information is used to calculate daily hydration goals, improve user experience, and provide insights based on your habits.",
+                "HydraMind supports Email/Password and Google Sign-In authentication through Firebase Authentication. Your login information is securely handled by Firebase services.",
               ),
               const SizedBox(height: 24),
-              _sectionTitle(context, "4. Data Storage"),
+              _sectionTitle(context, "Permissions Used"),
+              _sectionText(
+                  context,
+                  "HydraMind may request the following permissions for app functionality:\n\n"
+                  "• INTERNET – To connect with Firebase services and sync app data.\n\n"
+                  "• POST_NOTIFICATIONS – To send hydration reminder notifications.\n\n"
+                  "• RECEIVE_BOOT_COMPLETED – To restore reminders after device restart.\n\n"
+                  "• SCHEDULE_EXACT_ALARM – To schedule accurate hydration reminders.\n\n"
+                  "• REQUEST_IGNORE_BATTERY_OPTIMIZATIONS – To help reminders work properly in the background."
+                  // "• READ_MEDIA_IMAGES – To allow users to select a profile photo from gallery.",
+                  ),
+              const SizedBox(height: 24),
+              _sectionTitle(context, "Data Security"),
               _sectionText(
                 context,
-                "Hydration data and profile information may be securely stored using Firebase services. We do not sell or share your personal data with third parties.",
+                "We take reasonable measures to protect user information and prevent unauthorized access, misuse, or disclosure of data.",
               ),
               const SizedBox(height: 24),
-              _sectionTitle(context, "5. Notifications"),
+              _sectionTitle(context, "Third-Party Services"),
               _sectionText(
                 context,
-                "We use local notifications to remind you to drink water. These notifications can be customized or disabled at any time.",
+                "HydraMind may use trusted third-party services such as Firebase Authentication and Firebase Firestore for secure login and data storage.",
               ),
               const SizedBox(height: 24),
-              _sectionTitle(context, "6. Data Security"),
+              _sectionTitle(context, "Children's Privacy"),
               _sectionText(
                 context,
-                "We take reasonable measures to protect your information. However, no method of electronic storage is 100% secure.",
+                "HydraMind is not intended for children under the age of 13.",
               ),
               const SizedBox(height: 24),
-              _sectionTitle(context, "7. Your Control"),
+              _sectionTitle(context, "Changes to This Privacy Policy"),
               _sectionText(
                 context,
-                "You can edit your profile, adjust goals, or reset your data anytime within the app settings.",
+                "This Privacy Policy may be updated from time to time. Any changes will be reflected on this page.",
               ),
               const SizedBox(height: 24),
-              _sectionTitle(context, "8. Changes to This Policy"),
+              _sectionTitle(context, "Contact Us"),
               _sectionText(
                 context,
-                "We may update this Privacy Policy from time to time. Changes will be reflected within the app.",
+                "If you have any questions or concerns about this Privacy Policy, please contact us at:\n\n"
+                "Email: hydramind.app@gmail.com",
               ),
               const SizedBox(height: 40),
               Center(

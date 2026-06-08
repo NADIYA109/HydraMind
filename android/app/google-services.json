@@ -41,6 +41,43 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:361931335574:android:b54b76b6b0c655a4699fb7",
+        "android_client_info": {
+          "package_name": "com.hydramind.dailytracker.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "361931335574-bj4aorkdp4q2eo8qadmh1njp3jbrm94f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hydramind.dailytracker.app",
+            "certificate_hash": "cb03267d4e0fae652bff742e5b7905927464c5ed"
+          }
+        },
+        {
+          "client_id": "361931335574-ft2v1bgprf0e3l5r7pfu2j0qrspbpoaq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAovUBvCNH1a42oAnV_KAVVgLmCZgpO9bA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "361931335574-ft2v1bgprf0e3l5r7pfu2j0qrspbpoaq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
