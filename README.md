@@ -1,16 +1,35 @@
-# hydramind
+# HydraMind 
 
-A new Flutter project.
+HydraMind is a Flutter-based wellness application designed to help users build healthy hydration habits while tracking mood and daily wellness insights. The app provides personalized hydration goals, reminders, progress tracking, and a user-friendly experience with support for both light and dark themes.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+* User Authentication using Firebase Authentication
+* Personalized hydration goal calculation
+* Daily water intake tracking
+* Mood tracking and wellness insights
+* Local notifications and reminders
+* Light and Dark Theme support
+* Real-time data storage using Firebase Firestore
+* Responsive UI for different screen sizes
+* Google Play Store deployment
 
-A few resources to get you started if this is your first Flutter project:
+## Tech Stack
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+* Flutter
+* Dart
+* Firebase Authentication
+* Cloud Firestore
+* Provider State Management
+* Local Notifications
+* Git & GitHub
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Google Play Store
+
+HydraMind is available on Google Play Store.
+
+Play Store Link:
+https://play.google.com/store/apps/details?id=com.hydramind.dailytracker.app
+
+
+
