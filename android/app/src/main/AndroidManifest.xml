@@ -4,13 +4,8 @@
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
-<!-- <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/> -->
 
-<!-- <uses-permission android:name="android.permission.WAKE_LOCK"/> -->
-
-
-    <application
+<application
         android:label="HydraMind"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
@@ -53,6 +48,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.quickboot.POWERON"/>
             </intent-filter>
         </receiver>
     </application>

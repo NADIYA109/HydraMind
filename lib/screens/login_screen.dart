@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hydramind/providers/reminder_provider.dart';
 import 'package:hydramind/screens/email_auth_screen.dart';
 import 'package:hydramind/screens/main_navigation_screen.dart';
 import 'package:hydramind/screens/profile_setup_screen.dart';
 import 'package:hydramind/services/auth_service.dart';
+import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
 
@@ -33,6 +35,15 @@ class _LoginScreenState extends State<LoginScreen> {
       final profileComplete = await AuthService.isProfileComplete(user!.uid);
 
       if (!mounted) return;
+
+      /// Load reminders for the logged-in user
+      await context.read<ReminderProvider>().loadReminders();
+
+      if (!mounted) return;
+
+      await context.read<ReminderProvider>().restoreReminderSchedules();
+
+      if (!mounted) return; //new
 
       Navigator.pushAndRemoveUntil(
         context,

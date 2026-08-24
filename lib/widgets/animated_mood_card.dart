@@ -20,13 +20,12 @@ class _AnimatedMoodCardState extends State<AnimatedMoodCard>
     super.initState();
 
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1100), //600
+      duration: const Duration(milliseconds: 1100),
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0) //0.9
-        .animate(CurvedAnimation(
-            parent: _controller, curve: Curves.easeOutCubic)); //easeOut
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
@@ -46,71 +45,82 @@ class _AnimatedMoodCardState extends State<AnimatedMoodCard>
       opacity: _fadeAnimation,
       child: ScaleTransition(
         scale: _scaleAnimation,
-        child: GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MoodScreen()),
-            );
-          },
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(14),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MoodScreen()),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
-                  child: const Icon(
-                    Icons.mood,
-                    color: AppColors.primary,
-                    size: 28,
-                  ),
+                ],
+                border: Border.all(
+                  color: Colors.black.withOpacity(0.04),
+                  width: 1,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'How are you feeling today?',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.mood,
+                      color: AppColors.primary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'How are you feeling today?',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.1,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Log your mood for personalized insights',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
+                        SizedBox(height: 3), // was 4
+                        Text(
+                          'Log your mood for personalized insights',
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.3,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 18,
-                  color: AppColors.textSecondary,
-                ),
-              ],
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

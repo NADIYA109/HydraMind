@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hydramind/providers/water_provider.dart';
+import 'package:hydramind/widgets/profile_image_preview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/profile_provider.dart';
@@ -87,30 +88,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  ///  Image Preview
   void _showImagePreview() {
     final imagePath =
         _newPhotoPath ?? context.read<ProfileProvider>().photoPath;
 
-    if (imagePath == null) return;
-
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.black,
-            iconTheme: const IconThemeData(color: Colors.white),
-          ),
-          body: Center(
-            child: Hero(
-              tag: "profile_image",
-              child: InteractiveViewer(
-                child: Image.file(File(imagePath)),
-              ),
-            ),
-          ),
+        builder: (_) => ProfileImagePreview(
+          imagePath: imagePath,
+          heroTag: 'profile_image',
         ),
       ),
     );
@@ -120,6 +107,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final profile = context.watch<ProfileProvider>();
     final theme = Theme.of(context);
+
+    final imagePath = _newPhotoPath ?? profile.photoPath;
+
+    final hasImage = imagePath != null &&
+        imagePath.trim().isNotEmpty &&
+        File(imagePath).existsSync();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -149,22 +142,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           GestureDetector(
                             onTap: _showImagePreview,
                             child: Hero(
-                              tag: "profile_image",
-                              child: CircleAvatar(
-                                radius: 50,
-                                backgroundColor: theme.cardColor,
-                                backgroundImage: _newPhotoPath != null
-                                    ? FileImage(File(_newPhotoPath!))
-                                    : profile.photoPath != null
-                                        ? FileImage(File(profile.photoPath!))
-                                        : null,
-                                child: _newPhotoPath == null &&
-                                        profile.photoPath == null
-                                    ? Icon(Icons.person,
-                                        size: 30, color: theme.iconTheme.color)
-                                    : null,
-                              ),
-                            ),
+                                tag: "profile_image",
+                                child: CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: theme.cardColor,
+                                  backgroundImage: hasImage
+                                      ? FileImage(File(imagePath))
+                                      : null,
+                                  child: !hasImage
+                                      ? Icon(
+                                          Icons.person_outline,
+                                          size: 40,
+                                          color: theme.iconTheme.color,
+                                        )
+                                      : null,
+                                )),
                           ),
                           const SizedBox(height: 8),
                           GestureDetector(

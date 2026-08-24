@@ -7,7 +7,7 @@ class StreakProvider extends ChangeNotifier {
 
   int get streak => _streak;
 
-  /// ================= FETCH + CALCULATE =================
+  /// FETCH + CALCULATE
   Future<void> loadStreak() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
@@ -25,56 +25,80 @@ class StreakProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// ================= STREAK LOGIC =================
   int _calculateStreak(List<Map<String, dynamic>> logs) {
-    int streak = 0;
-
     if (logs.isEmpty) return 0;
 
-    // sort latest first
     logs.sort((a, b) => b['date'].compareTo(a['date']));
 
-    DateTime today = DateTime.now();
+    final now = DateTime.now();
 
-    //  Check if today exists & completed
+    final today = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    );
+
     Map<String, dynamic>? todayLog;
 
-    for (var log in logs) {
-      DateTime date = DateTime.parse(log['date']);
+    for (final log in logs) {
+      final logDate = DateTime.parse(log['date']);
 
-      if (date.year == today.year &&
-          date.month == today.month &&
-          date.day == today.day) {
+      final normalizedDate = DateTime(
+        logDate.year,
+        logDate.month,
+        logDate.day,
+      );
+
+      if (normalizedDate == today) {
         todayLog = log;
         break;
       }
     }
 
-    if (todayLog == null) return 0;
+    DateTime expectedDate;
 
-    int intake = todayLog['intake'] ?? 0;
-    int goal = todayLog['goal'] ?? 0;
+    final todayCompleted = todayLog != null &&
+        (todayLog['intake'] ?? 0) >= (todayLog['goal'] ?? 0);
 
-    if (intake < goal) return 0;
+    if (todayCompleted) {
+      expectedDate = today;
+    } else {
+      expectedDate = today.subtract(
+        const Duration(days: 1),
+      );
+    }
 
-    // count streak from today backwards
-    DateTime prevDate = DateTime.parse(todayLog['date']);
-    streak = 1;
+    int streak = 0;
 
-    for (var log in logs.skip(1)) {
-      DateTime currentDate = DateTime.parse(log['date']);
+    for (final log in logs) {
+      final logDate = DateTime.parse(log['date']);
 
-      final diff = prevDate.difference(currentDate).inDays;
+      final normalizedDate = DateTime(
+        logDate.year,
+        logDate.month,
+        logDate.day,
+      );
 
-      int intake = log['intake'] ?? 0;
-      int goal = log['goal'] ?? 0;
+      if (normalizedDate.isAfter(expectedDate)) {
+        continue;
+      }
 
-      if (diff == 1 && intake >= goal) {
-        streak++;
-        prevDate = currentDate;
-      } else {
+      if (normalizedDate != expectedDate) {
         break;
       }
+
+      final intake = log['intake'] ?? 0;
+      final goal = log['goal'] ?? 0;
+
+      if (goal <= 0 || intake < goal) {
+        break;
+      }
+
+      streak++;
+
+      expectedDate = expectedDate.subtract(
+        const Duration(days: 1),
+      );
     }
 
     return streak;

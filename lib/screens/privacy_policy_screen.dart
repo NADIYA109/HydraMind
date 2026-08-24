@@ -49,10 +49,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   "• INTERNET – To connect with Firebase services and sync app data.\n\n"
                   "• POST_NOTIFICATIONS – To send hydration reminder notifications.\n\n"
                   "• RECEIVE_BOOT_COMPLETED – To restore reminders after device restart.\n\n"
-                  "• SCHEDULE_EXACT_ALARM – To schedule accurate hydration reminders.\n\n"
-                  "• REQUEST_IGNORE_BATTERY_OPTIMIZATIONS – To help reminders work properly in the background."
-                  // "• READ_MEDIA_IMAGES – To allow users to select a profile photo from gallery.",
-                  ),
+                  "• SCHEDULE_EXACT_ALARM – To schedule accurate hydration reminders."),
               const SizedBox(height: 24),
               _sectionTitle(context, "Data Security"),
               _sectionText(

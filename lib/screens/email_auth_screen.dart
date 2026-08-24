@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hydramind/providers/reminder_provider.dart';
 import 'package:hydramind/screens/forgot_password_screen.dart';
 import 'package:hydramind/screens/main_navigation_screen.dart';
 import 'package:hydramind/screens/profile_setup_screen.dart';
 import 'package:hydramind/services/auth_service.dart';
+import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 
 class EmailAuthScreen extends StatefulWidget {
@@ -25,10 +28,12 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
 
   // Email validation
   bool isValidEmail(String email) {
-    return RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(email);
+    return RegExp(
+      r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+    ).hasMatch(email);
   }
 
-  // Strong password validation
+  // password validation
   bool isStrongPassword(String password) {
     return password.length >= 6 &&
         password.contains(RegExp(r'[A-Z]')) &&
@@ -88,7 +93,35 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
         isLogin: isLogin,
       );
 
+      if (!isLogin) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Verification email sent. Check your inbox (or Spam folder) to verify your email.",
+            ),
+          ),
+        );
+
+        setState(() {
+          isLogin = true;
+          _passwordController.clear();
+        });
+
+        return;
+      }
+
       final profileComplete = await AuthService.isProfileComplete(user!.uid);
+
+      if (!mounted) return;
+
+      /// Load reminders for the logged-in user
+      await context.read<ReminderProvider>().loadReminders();
+
+      if (!mounted) return;
+
+      await context.read<ReminderProvider>().restoreReminderSchedules();
 
       if (!mounted) return;
 
@@ -102,12 +135,234 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
         (route) => false,
       );
     } catch (e) {
-      setState(() {
-        passwordError = "Invalid email or password";
-      });
+      if (e is FirebaseAuthException && e.code == 'email-not-verified') {
+        if (!mounted) return;
+
+        await _showVerificationDialog();
+      } else {
+        setState(() {
+          passwordError = null;
+        });
+      }
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
+  }
+
+  Future<void> _showVerificationDialog() async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.55),
+      builder: (dialogContext) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.5 : 0.18),
+                  blurRadius: 40,
+                  offset: const Offset(0, 20),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 26,
+                vertical: 30,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 68,
+                    height: 68,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? [
+                                AppColors.primary.withOpacity(0.25),
+                                AppColors.primary.withOpacity(0.08),
+                              ]
+                            : [
+                                const Color(0xFFE8F8FA),
+                                const Color(0xFFD5F1F4),
+                              ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.18),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.mark_email_unread_rounded,
+                      color: AppColors.primary,
+                      size: 30,
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Text(
+                    "Verify Your Email",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Please verify your email before logging in.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      height: 1.5,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.65),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "Didn't receive the email?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.85),
+                    ),
+                  ),
+                  const SizedBox(height: 26),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            Color(0xFF0E5F6B),
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.35),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          //elevation: 1,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () async {
+                          try {
+                            await AuthService.resendVerificationEmail();
+
+                            if (!mounted) return;
+
+                            Navigator.of(dialogContext).pop();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text(
+                                  "Verification email sent successfully.",
+                                ),
+                              ),
+                            );
+
+                            await AuthService.logout();
+                          } on FirebaseAuthException catch (e) {
+                            if (!mounted) return;
+
+                            Navigator.of(dialogContext).pop();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text(
+                                  e.message ?? "Something went wrong.",
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          "Resend Email",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                    ),
+                    onPressed: () async {
+                      await AuthService.logout();
+
+                      if (!mounted) return;
+
+                      Navigator.of(dialogContext).pop();
+                    },
+                    child: Text(
+                      "Cancel",
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withOpacity(0.6),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override

@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/reminder_model.dart';
 import '../services/notification_service.dart';
 
@@ -10,7 +12,15 @@ class ReminderProvider extends ChangeNotifier {
 
   int _idCounter = 0;
 
-  void addReminder(TimeOfDay time) {
+  String? get _reminderKey {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId == null) return null;
+
+    return 'reminders_$userId';
+  }
+
+  Future<void> addReminder(TimeOfDay time) async {
     final reminder = ReminderModel(
       id: _idCounter++,
       hour: time.hour,
@@ -22,118 +32,238 @@ class ReminderProvider extends ChangeNotifier {
 
     _sortReminders();
 
-    scheduleReminder(reminder); // auto schedule
-    _saveReminders();
+    await scheduleReminder(reminder);
+    await _saveReminders();
 
     notifyListeners();
   }
 
-  void scheduleReminder(ReminderModel reminder) {
-    final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute);
+  Future<void> scheduleReminder(
+    ReminderModel reminder,
+  ) async {
+    if (!reminder.isEnabled) return;
 
-    for (int day in reminder.days) {
-      final uniqueId = reminder.id * 10 + day; //  unique per day
+    final time = TimeOfDay(
+      hour: reminder.hour,
+      minute: reminder.minute,
+    );
 
-      NotificationHelper.instance.scheduleWeekly(
-        id: uniqueId,
-        time: time,
-        weekday: day,
-      );
-    }
+    await Future.wait(
+      reminder.days.map((day) {
+        final uniqueId = reminder.id * 10 + day;
+
+        return NotificationHelper.instance.scheduleWeekly(
+          id: uniqueId,
+          time: time,
+          weekday: day,
+        );
+      }),
+    );
   }
 
   void _sortReminders() {
     reminders.sort((a, b) {
       final aTime = a.hour * 60 + a.minute;
       final bTime = b.hour * 60 + b.minute;
+
       return aTime.compareTo(bTime);
     });
   }
 
-  void toggleReminder(ReminderModel reminder, bool value) {
+  Future<void> toggleReminder(
+    ReminderModel reminder,
+    bool value,
+  ) async {
     reminder.isEnabled = value;
 
     if (value) {
-      scheduleReminder(reminder); //  schedule all selected days
+      await scheduleReminder(reminder);
     } else {
-      cancelReminder(reminder); //  cancel all
+      await cancelReminder(reminder);
     }
-    _sortReminders(); // keep list ordered
-    _saveReminders();
+
+    _sortReminders();
+
+    await _saveReminders();
 
     notifyListeners();
   }
 
-  void cancelReminder(ReminderModel reminder) {
-    for (int day in reminder.days) {
-      final id = reminder.id * 10 + day;
-      NotificationHelper.instance.cancelById(id);
-    }
+  Future<void> cancelReminder(
+    ReminderModel reminder,
+  ) async {
+    await Future.wait(
+      reminder.days.map((day) {
+        final id = reminder.id * 10 + day;
+
+        return NotificationHelper.instance.cancelById(id);
+      }),
+    );
   }
 
   void toggleExpand(ReminderModel reminder) {
     reminder.isExpanded = !reminder.isExpanded;
+
     notifyListeners();
   }
 
-  void toggleDay(ReminderModel reminder, int day) {
+  Future<void> toggleDay(
+    ReminderModel reminder,
+    int day,
+  ) async {
+    // Keep at least one reminder day selected
+    if (reminder.days.contains(day) && reminder.days.length == 1) {
+      return;
+    }
+
+    final notificationId = reminder.id * 10 + day;
+
     if (reminder.days.contains(day)) {
+      await NotificationHelper.instance.cancelById(
+        notificationId,
+      );
+
       reminder.days.remove(day);
     } else {
       reminder.days.add(day);
+
+      if (reminder.isEnabled) {
+        final time = TimeOfDay(
+          hour: reminder.hour,
+          minute: reminder.minute,
+        );
+
+        await NotificationHelper.instance.scheduleWeekly(
+          id: notificationId,
+          time: time,
+          weekday: day,
+        );
+      }
     }
-    _saveReminders();
+
+    await _saveReminders();
 
     notifyListeners();
   }
 
   Future<void> _saveReminders() async {
+    final key = _reminderKey;
+
+    if (key == null) return;
+
     final prefs = await SharedPreferences.getInstance();
 
-    final data = reminders.map((e) => e.toJson()).toList();
+    final data = reminders.map((reminder) => reminder.toJson()).toList();
 
-    prefs.setString('reminders', jsonEncode(data));
+    await prefs.setString(
+      key,
+      jsonEncode(data),
+    );
   }
 
-  void deleteReminder(ReminderModel reminder) {
-    cancelReminder(reminder);
+  Future<void> deleteReminder(
+    ReminderModel reminder,
+  ) async {
+    await cancelReminder(reminder);
+
     reminders.remove(reminder);
-    _saveReminders();
+
+    await _saveReminders();
 
     notifyListeners();
   }
 
   Future<void> loadReminders() async {
+    final key = _reminderKey;
+
+    if (key == null) {
+      reminders = [];
+      _idCounter = 0;
+      notifyListeners();
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
 
-    final data = prefs.getString('reminders');
+    String? data = prefs.getString(key);
 
-    if (data != null) {
-      final List decoded = jsonDecode(data);
+    // Migrate reminders saved by older app versions
+    if (data == null) {
+      final oldData = prefs.getString('reminders');
 
-      reminders = decoded.map((e) => ReminderModel.fromJson(e)).toList();
+      if (oldData != null) {
+        data = oldData;
 
-      _sortReminders();
+        await prefs.setString(
+          key,
+          oldData,
+        );
 
+        await prefs.remove('reminders');
+      }
+    }
+
+    if (data == null) {
+      reminders = [];
+      _idCounter = 0;
       notifyListeners();
+      return;
+    }
+
+    final List<dynamic> decoded = jsonDecode(data);
+
+    reminders = decoded.map((item) => ReminderModel.fromJson(item)).toList();
+
+    _sortReminders();
+
+    if (reminders.isNotEmpty) {
+      final maxId = reminders
+          .map((reminder) => reminder.id)
+          .reduce((a, b) => a > b ? a : b);
+
+      _idCounter = maxId + 1;
+    } else {
+      _idCounter = 0;
+    }
+
+    notifyListeners();
+  }
+
+  /// Restore scheduled notifications after login
+  Future<void> restoreReminderSchedules() async {
+    for (final reminder in reminders) {
+      if (reminder.isEnabled) {
+        await scheduleReminder(reminder);
+      }
     }
   }
 
-  Future<void> updateReminderTime(
-      ReminderModel reminder, TimeOfDay newTime) async {
-    // Cancel old notifications
-    cancelReminder(reminder);
+  Future<void> clearForLogout() async {
+    for (final reminder in List<ReminderModel>.from(reminders)) {
+      await cancelReminder(reminder);
+    }
 
-    //  Update time
+    reminders = [];
+    _idCounter = 0;
+
+    notifyListeners();
+  }
+
+  Future<void> updateReminderTime(
+    ReminderModel reminder,
+    TimeOfDay newTime,
+  ) async {
+    await cancelReminder(reminder);
+
     reminder.hour = newTime.hour;
     reminder.minute = newTime.minute;
 
-    // Reschedule
     if (reminder.isEnabled) {
-      scheduleReminder(reminder);
+      await scheduleReminder(reminder);
     }
 
-    // Save
+    _sortReminders();
+
     await _saveReminders();
 
     notifyListeners();

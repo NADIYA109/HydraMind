@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hydramind/models/water_entry_model.dart';
 import 'package:intl/intl.dart';
 
 class FirestoreService {
@@ -81,6 +82,79 @@ class FirestoreService {
       'energy': energy ?? " 0",
       'date': date,
     }, SetOptions(merge: true));
+  }
+
+  // WATER ENTRIES
+
+  /// Save a single water intake entry
+  Future<void> addWaterEntry({
+    required int amountMl,
+    required String date,
+  }) async {
+    if (_userId == null) return;
+
+    await _db.collection('users').doc(_userId).collection('water_entries').add({
+      'amountMl': amountMl,
+      'date': date,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Fetch today's water intake entries
+  Future<List<WaterEntry>> fetchTodayWaterEntries(String date) async {
+    if (_userId == null) return [];
+
+    final snapshot = await _db
+        .collection('users')
+        .doc(_userId)
+        .collection('water_entries')
+        .where('date', isEqualTo: date)
+        .get();
+
+    final entries = snapshot.docs.map((doc) {
+      return WaterEntry.fromFirestore(
+        doc.id,
+        doc.data(),
+      );
+    }).toList();
+
+    entries.sort(
+      (a, b) => b.createdAt.compareTo(a.createdAt),
+    );
+
+    return entries;
+  }
+
+  /// Delete a water intake entry
+  Future<void> deleteWaterEntry(String entryId) async {
+    if (_userId == null) return;
+
+    await _db
+        .collection('users')
+        .doc(_userId)
+        .collection('water_entries')
+        .doc(entryId)
+        .delete();
+  }
+
+  /// Clear today's water intake entries
+  Future<void> clearTodayWaterEntries(String date) async {
+    if (_userId == null) return;
+
+    final snapshot = await _db
+        .collection('users')
+        .doc(_userId)
+        .collection('water_entries')
+        .where('date', isEqualTo: date)
+        .get();
+
+    final batch = _db.batch();
+
+    for (final doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
   }
 
   Future<List<Map<String, dynamic>>> fetchWeeklyLogs() async {

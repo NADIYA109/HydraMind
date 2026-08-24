@@ -13,125 +13,122 @@ class MoodScreen extends StatelessWidget {
     final moodProvider = context.watch<MoodProvider>();
 
     return Scaffold(
-      //backgroundColor: AppColors.background,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
       appBar: AppBar(
         elevation: 0,
-        //backgroundColor: AppColors.background,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
         foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
         title: const Text('How are you feeling today?'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// Mood selection
-            Text(
-              'Select your mood',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                //color: AppColors.textPrimary,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _moodItem(context, 'Happy', '😊'),
-                _moodItem(context, 'Calm', '😌'),
-                _moodItem(context, 'Stressed', '😣'),
-                _moodItem(context, 'Tired', '😴'),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            /// Energy level
-            Text(
-              'Energy level',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                //color: AppColors.textPrimary,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Slider(
-              value: moodProvider.energyLevel.toDouble(),
-              min: 1,
-              max: 5,
-              divisions: 4,
-              label: moodProvider.energyLevel.toString(),
-              activeColor: AppColors.primary,
-              onChanged: (value) {
-                context.read<MoodProvider>().setEnergyLevel(value.toInt());
-              },
-            ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('Low'),
-                Text('High'),
-              ],
-            ),
-
-            const Spacer(),
-
-            /// Save button
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: moodProvider.mood == null
-                    ? null
-                    : () async {
-                        final water = context.read<WaterProvider>();
-
-                        await FirestoreService().saveWaterData(
-                          intake: water.currentIntake,
-                          goal: water.dailyGoal,
-                          date: water.today,
-                          mood: moodProvider.mood,
-                          energy: moodProvider.energyLevel,
-                        );
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Mood saved successfully'),
-                          ),
-                        );
-
-                        Navigator.pop(context);
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Text(
-                  'Save Mood',
-                  style: TextStyle(
-                    fontSize: 16,
-                    //color: Colors.white,
-                    color: Theme.of(context).cardColor,
-                  ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// Mood selection
+              Text(
+                'Select your mood',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  //color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 16),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _moodItem(context, 'Happy', '😊'),
+                  _moodItem(context, 'Calm', '😌'),
+                  _moodItem(context, 'Stressed', '😣'),
+                  _moodItem(context, 'Tired', '😴'),
+                ],
+              ),
+
+              const SizedBox(height: 32),
+
+              /// Energy level
+              Text(
+                'Energy level',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  //color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Slider(
+                value: moodProvider.energyLevel.toDouble(),
+                min: 1,
+                max: 5,
+                divisions: 4,
+                label: moodProvider.energyLevel.toString(),
+                activeColor: AppColors.primary,
+                onChanged: (value) {
+                  context.read<MoodProvider>().setEnergyLevel(value.toInt());
+                },
+              ),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text('Low'),
+                  Text('High'),
+                ],
+              ),
+
+              const Spacer(),
+
+              /// Save button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: moodProvider.mood == null
+                      ? null
+                      : () async {
+                          final water = context.read<WaterProvider>();
+
+                          await FirestoreService().saveWaterData(
+                            intake: water.currentIntake,
+                            goal: water.dailyGoal,
+                            date: water.today,
+                            mood: moodProvider.mood,
+                            energy: moodProvider.energyLevel,
+                          );
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Mood saved successfully'),
+                            ),
+                          );
+
+                          Navigator.pop(context);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    'Save Mood',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).cardColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

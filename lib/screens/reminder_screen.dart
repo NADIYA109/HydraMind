@@ -1,28 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:hydramind/models/reminder_model.dart';
+import 'package:hydramind/services/notification_service.dart';
 import 'package:provider/provider.dart';
+
 import '../core/constants/app_colors.dart';
 import '../providers/reminder_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ReminderScreen extends StatelessWidget {
   const ReminderScreen({super.key});
 
-  /// Fix background restrictions
-  Future<void> _fixNotificationRestrictions(BuildContext context) async {
-    if (await Permission.ignoreBatteryOptimizations.isDenied) {
-      await Permission.ignoreBatteryOptimizations.request();
-    }
-
-    await openAppSettings();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content:
-            Text('Disable "Pause app activity" & set battery to Unrestricted'),
-      ),
-    );
-  }
+  // Weekday names used in reminder selection
+  static const List<String> _dayNames = [
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +26,6 @@ class ReminderScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
       appBar: AppBar(
         title: Text(
           'Reminder Schedule',
@@ -41,12 +36,11 @@ class ReminderScreen extends StatelessWidget {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            /// HEADER
+            // Reminder info
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -59,22 +53,21 @@ class ReminderScreen extends StatelessWidget {
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      "We will optimise reminder time based on your usage",
+                      'Set reminders to stay consistent with your hydration goal',
                       style: TextStyle(fontSize: 13),
                     ),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
 
-            /// LIST
+            // Reminder list
             Expanded(
               child: reminderProvider.reminders.isEmpty
                   ? const Center(
                       child: Text(
-                        "No reminders yet.\nTap + to add",
+                        'No reminders yet.\nTap + to add',
                         textAlign: TextAlign.center,
                       ),
                     )
@@ -82,42 +75,20 @@ class ReminderScreen extends StatelessWidget {
                       itemCount: reminderProvider.reminders.length,
                       itemBuilder: (context, index) {
                         final reminder = reminderProvider.reminders[index];
-                        return _buildReminderItem(context, reminder);
+
+                        return _buildReminderItem(
+                          context,
+                          reminder,
+                        );
                       },
                     ),
             ),
-
-            /// WARNING
-            GestureDetector(
-              onTap: () => _fixNotificationRestrictions(context),
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orange),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.orange),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Notifications not working? Set battery to Unrestricted',
-                        style: TextStyle(color: Colors.orange, fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
             const SizedBox(height: 10),
           ],
         ),
       ),
 
-      /// ADD BUTTON
+      // Add new reminder
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
@@ -128,19 +99,28 @@ class ReminderScreen extends StatelessWidget {
           );
 
           if (time != null) {
-            context.read<ReminderProvider>().addReminder(time);
+            await NotificationHelper.instance.requestPermission();
+
+            if (!context.mounted) return;
+
+            await context.read<ReminderProvider>().addReminder(time);
           }
         },
       ),
     );
   }
 
-  /// ================= ITEM =================
-
-  Widget _buildReminderItem(BuildContext context, ReminderModel reminder) {
+  // Builds each reminder card
+  Widget _buildReminderItem(
+    BuildContext context,
+    ReminderModel reminder,
+  ) {
     final provider = context.read<ReminderProvider>();
 
-    final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute);
+    final time = TimeOfDay(
+      hour: reminder.hour,
+      minute: reminder.minute,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -151,29 +131,21 @@ class ReminderScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          /// TOP ROW
           Row(
             children: [
-              /// TIME + EDIT
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        /// TIME
                         GestureDetector(
                           onTap: () async {
-                            final pickedTime = await showTimePicker(
-                              context: context,
-                              initialTime: time,
+                            await _editReminderTime(
+                              context,
+                              reminder,
+                              time,
                             );
-
-                            if (pickedTime != null) {
-                              context
-                                  .read<ReminderProvider>()
-                                  .updateReminderTime(reminder, pickedTime);
-                            }
                           },
                           child: Text(
                             time.format(context),
@@ -183,22 +155,14 @@ class ReminderScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-
                         const SizedBox(width: 8),
-
-                        /// EDIT ICON
                         GestureDetector(
                           onTap: () async {
-                            final pickedTime = await showTimePicker(
-                              context: context,
-                              initialTime: time,
+                            await _editReminderTime(
+                              context,
+                              reminder,
+                              time,
                             );
-
-                            if (pickedTime != null) {
-                              context
-                                  .read<ReminderProvider>()
-                                  .updateReminderTime(reminder, pickedTime);
-                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.all(6),
@@ -215,10 +179,7 @@ class ReminderScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 4),
-
-                    /// DAYS
                     Text(
                       _getSelectedDays(reminder.days),
                       style: const TextStyle(fontSize: 12),
@@ -226,16 +187,15 @@ class ReminderScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
-              /// SWITCH
               Switch(
                 value: reminder.isEnabled,
-                onChanged: (val) {
-                  provider.toggleReminder(reminder, val);
+                onChanged: (value) async {
+                  await provider.toggleReminder(
+                    reminder,
+                    value,
+                  );
                 },
               ),
-
-              /// EXPAND
               IconButton(
                 icon: Icon(
                   reminder.isExpanded
@@ -249,33 +209,35 @@ class ReminderScreen extends StatelessWidget {
             ],
           ),
 
-          /// EXPANDED
+          // Selected reminder days
           if (reminder.isExpanded) ...[
             const SizedBox(height: 10),
-
-            /// DAYS SELECT
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: List.generate(7, (index) {
                 final day = index + 1;
                 final isSelected = reminder.days.contains(day);
 
-                final names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
                 return GestureDetector(
-                  onTap: () {
-                    provider.toggleDay(reminder, day);
+                  onTap: () async {
+                    await provider.toggleDay(
+                      reminder,
+                      day,
+                    );
                   },
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color:
                           isSelected ? AppColors.primary : Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      names[index],
+                      _dayNames[index],
                       style: TextStyle(
                         color: isSelected ? Colors.white : Colors.black,
                         fontSize: 12,
@@ -285,18 +247,17 @@ class ReminderScreen extends StatelessWidget {
                 );
               }),
             ),
-
             const SizedBox(height: 10),
 
-            /// DELETE
+            // Delete reminder
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
-                onPressed: () {
-                  provider.deleteReminder(reminder);
+                onPressed: () async {
+                  await provider.deleteReminder(reminder);
                 },
                 child: const Text(
-                  "Delete",
+                  'Delete',
                   style: TextStyle(color: Colors.red),
                 ),
               ),
@@ -307,12 +268,29 @@ class ReminderScreen extends StatelessWidget {
     );
   }
 
-  /// ================= HELPER =================
+  // Opens time picker and updates reminder time
+  Future<void> _editReminderTime(
+    BuildContext context,
+    ReminderModel reminder,
+    TimeOfDay currentTime,
+  ) async {
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: currentTime,
+    );
 
+    if (pickedTime == null || !context.mounted) return;
+
+    await context.read<ReminderProvider>().updateReminderTime(
+          reminder,
+          pickedTime,
+        );
+  }
+
+  // Converts selected day numbers to weekday names
   String _getSelectedDays(List<int> days) {
-    if (days.length == 7) return "Everyday";
+    if (days.length == 7) return 'Everyday';
 
-    final names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days.map((d) => names[d - 1]).join(" ");
+    return days.map((day) => _dayNames[day - 1]).join(' ');
   }
 }

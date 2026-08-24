@@ -7,8 +7,6 @@ import 'package:hydramind/providers/streak_provider.dart';
 import 'package:hydramind/screens/login_screen.dart';
 import 'package:hydramind/screens/main_navigation_screen.dart';
 import 'package:hydramind/screens/profile_setup_screen.dart';
-import 'package:hydramind/services/fcm_service.dart';
-import 'package:hydramind/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
@@ -29,30 +27,13 @@ class _SplashScreenState extends State<SplashScreen> {
       try {
         final user = FirebaseAuth.instance.currentUser;
 
-        if (user != null) {
-          await FCMService.saveTokenToFirestore();
-          FCMService.onMessageListener();
-        }
-
-        /// ================== LOAD REMINDERS ==================
+        ///Load saved reminders
         final reminderProvider = context.read<ReminderProvider>();
-
         await reminderProvider.loadReminders();
-
-        ///  CLEAR OLD (avoid duplicate notifications)
-        await NotificationHelper.instance.cancelAll();
-
-        ///  RESCHEDULE ALL REMINDERS
-        for (var reminder in reminderProvider.reminders) {
-          if (reminder.isEnabled) {
-            reminderProvider.scheduleReminder(reminder);
-          }
-        }
-
-        await Future.delayed(const Duration(seconds: 3));
 
         if (!mounted) return;
 
+        /// User is not logged in
         if (user == null) {
           Navigator.pushReplacement(
             context,
@@ -61,10 +42,13 @@ class _SplashScreenState extends State<SplashScreen> {
           return;
         }
 
+        // Load user profile
         final doc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
+
+        if (!mounted) return;
 
         if (!doc.exists) {
           Navigator.pushReplacement(
@@ -87,6 +71,8 @@ class _SplashScreenState extends State<SplashScreen> {
           await context.read<StreakProvider>().loadStreak();
         }
 
+        if (!mounted) return;
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -96,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
         );
       } catch (e) {
-        print("Splash Error: $e");
+        debugPrint("Splash Error: $e");
 
         if (!mounted) return;
 

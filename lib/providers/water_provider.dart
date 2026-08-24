@@ -3,12 +3,12 @@ import 'package:hydramind/providers/mood_provider.dart';
 import 'package:hydramind/services/firestore_services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:hydramind/models/water_entry_model.dart';
 
 class WaterProvider extends ChangeNotifier {
   int _currentIntakeMl = 0; // Always stored in ML internally
   int _dailyGoalMl = 2000;
-  int _recommendedGoalMl =
-      2000; // fixed calculated goal // Always stored in ML internally
+  int _recommendedGoalMl = 2000; // fixed calculated goal
   String _unit = 'ml'; // ml or oz
   int _selectedCup = -1;
   List<int> _cups = [150, 200, 250, 300, 400];
@@ -16,6 +16,10 @@ class WaterProvider extends ChangeNotifier {
   List<int> get cups => _cups;
 
   int get selectedCup => _selectedCup;
+
+  List<WaterEntry> _waterEntries = [];
+
+  List<WaterEntry> get waterEntries => _waterEntries;
 
   void addCustomCup(int ml) {
     if (!_cups.contains(ml)) {
@@ -37,7 +41,7 @@ class WaterProvider extends ChangeNotifier {
 
   final FirestoreService _firestoreService = FirestoreService();
 
-  // ================== GETTERS ==================
+  // GETTERS
 
   int get currentIntake =>
       _unit == 'ml' ? _currentIntakeMl : (_currentIntakeMl / 29.57).round();
@@ -54,14 +58,15 @@ class WaterProvider extends ChangeNotifier {
 
   int get recommendedGoal =>
       _unit == 'ml' ? _recommendedGoalMl : (_recommendedGoalMl / 29.57).round();
-  // ================== UNIT CHANGE ==================
+
+  // UNIT CHANGE
 
   void changeUnit(String newUnit) {
     _unit = newUnit;
     notifyListeners();
   }
 
-  // ================== GOAL CALCULATION ==================
+  //  GOAL CALCULATION
 
   void calculateDailyGoal({
     required int weight,
@@ -103,7 +108,7 @@ class WaterProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ================== MANUAL GOAL UPDATE (SLIDER) ==================
+  // GOAL SLIDER
 
   Future<void> updateDailyGoal(int value) async {
     if (_unit == 'ml') {
@@ -121,10 +126,12 @@ class WaterProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ================== ADD WATER ==================
+  // ADD WATER
 
   Future<void> addWater(int amount, BuildContext context) async {
-    int amountInMl = _unit == 'ml' ? amount : (amount * 29.57).round();
+    final amountInMl = _unit == 'ml' ? amount : (amount * 29.57).round();
+
+    final previousIntake = _currentIntakeMl;
 
     _currentIntakeMl += amountInMl;
 
@@ -132,7 +139,16 @@ class WaterProvider extends ChangeNotifier {
       _currentIntakeMl = _dailyGoalMl;
     }
 
+    final addedAmount = _currentIntakeMl - previousIntake;
+
+    if (addedAmount <= 0) return;
+
     final mood = context.read<MoodProvider>();
+
+    await _firestoreService.addWaterEntry(
+      amountMl: addedAmount,
+      date: today,
+    );
 
     await _firestoreService.saveWaterData(
       intake: _currentIntakeMl,
@@ -142,10 +158,13 @@ class WaterProvider extends ChangeNotifier {
       energy: mood.energyLevel,
     );
 
+    await loadWaterEntries();
+
     notifyListeners();
   }
 
-  // ================== LOAD DATA ==================
+  // LOAD DATA
+
   Future<void> loadWaterData() async {
     final data = await _firestoreService.fetchWaterData();
 
@@ -156,15 +175,54 @@ class WaterProvider extends ChangeNotifier {
       _currentIntakeMl = 0;
     }
 
+    await loadWaterEntries();
+
     notifyListeners();
   }
 
-  // ================== RESET ==================
+  /// Load today's water intake entries
+  Future<void> loadWaterEntries() async {
+    _waterEntries = await _firestoreService.fetchTodayWaterEntries(today);
+  }
+
+  /// Delete a water intake entry
+  Future<void> deleteWaterEntry(
+    WaterEntry entry,
+    BuildContext context,
+  ) async {
+    _currentIntakeMl -= entry.amountMl;
+
+    if (_currentIntakeMl < 0) {
+      _currentIntakeMl = 0;
+    }
+
+    final mood = context.read<MoodProvider>();
+
+    await _firestoreService.deleteWaterEntry(entry.id);
+
+    await _firestoreService.saveWaterData(
+      intake: _currentIntakeMl,
+      goal: _dailyGoalMl,
+      date: today,
+      mood: mood.mood ?? "Not Set",
+      energy: mood.energyLevel,
+    );
+
+    _waterEntries.removeWhere(
+      (waterEntry) => waterEntry.id == entry.id,
+    );
+
+    notifyListeners();
+  }
+
+  //  RESET
 
   Future<void> resetDailyWater(BuildContext context) async {
     _currentIntakeMl = 0;
 
     final mood = context.read<MoodProvider>();
+
+    await _firestoreService.clearTodayWaterEntries(today);
 
     await _firestoreService.saveWaterData(
       intake: 0,
@@ -173,6 +231,8 @@ class WaterProvider extends ChangeNotifier {
       mood: mood.mood ?? "Not Set",
       energy: mood.energyLevel,
     );
+
+    _waterEntries.clear();
 
     notifyListeners();
   }

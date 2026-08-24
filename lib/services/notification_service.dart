@@ -1,96 +1,121 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
 
 class NotificationHelper {
   NotificationHelper._internal();
+
   static final NotificationHelper instance = NotificationHelper._internal();
 
-  FlutterLocalNotificationsPlugin? _plugin;
+  final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
+
+  bool _initialized = false;
+
+  Future<void> initNotifications() async {
+    if (_initialized) return;
+
+    tz.initializeTimeZones();
+
+    try {
+      final timeZoneName = await FlutterTimezone.getLocalTimezone();
+
+      tz.setLocalLocation(
+        tz.getLocation(timeZoneName),
+      );
+    } catch (e) {
+      debugPrint(
+        'Timezone lookup failed: $e',
+      );
+
+      tz.setLocalLocation(
+        tz.getLocation('Asia/Kolkata'),
+      );
+    }
+
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+
+    const initializationSettings = InitializationSettings(
+      android: androidSettings,
+    );
+
+    await _plugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (details) {
+        debugPrint(
+          'Notification tapped: ${details.payload}',
+        );
+      },
+    );
+
+    _initialized = true;
+  }
+
+  Future<void> requestPermission() async {
+    await initNotifications();
+
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidPlugin?.requestNotificationsPermission();
+
+    await androidPlugin?.requestExactAlarmsPermission();
+  }
 
   Future<void> cancelAll() async {
-    if (_plugin == null) return;
+    await initNotifications();
 
-    await _plugin!.cancelAll();
+    await _plugin.cancelAll();
   }
 
   Future<void> cancelById(int id) async {
-    if (_plugin == null) return;
-    await _plugin!.cancel(id);
-  }
+    await initNotifications();
 
-  Future<void> initNotifications() async {
-    _plugin = FlutterLocalNotificationsPlugin();
-
-    // 1. Initialize Timezones
-    tz.initializeTimeZones();
-// 2. Set the local location with a safety net
-    try {
-      final String timeZoneName = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timeZoneName));
-    } catch (e) {
-      // If "Asia/Calcutta" fails, fallback to "Asia/Kolkata" or UTC
-      debugPrint("Timezone lookup failed, falling back to Kolkata: $e");
-      tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
-    }
-
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const settings = InitializationSettings(android: androidInit);
-
-    await _plugin!.initialize(
-      settings,
-      onDidReceiveNotificationResponse: (details) {
-        debugPrint("Notification Tapped: ${details.payload}");
-      },
-    );
-  }
-
-  /// PERMISSIONS – Call this to handle Android 13+ and Android 14+
-  Future<void> requestPermission() async {
-    final androidPlugin = _plugin?.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-
-    // Request standard notification permission (Android 13+)
-    await androidPlugin?.requestNotificationsPermission();
-
-    // Request Exact Alarm permission (Android 14+)
-    // This will open the system settings for the user if not granted
-    await androidPlugin?.requestExactAlarmsPermission();
+    await _plugin.cancel(id);
   }
 
   Future<void> scheduleWeekly({
     required int id,
     required TimeOfDay time,
-    required int weekday, // 1=Mon ... 7=Sun
+    required int weekday,
   }) async {
-    final now = tz.TZDateTime.now(tz.local);
+    await initNotifications();
 
-    tz.TZDateTime scheduled = _nextInstanceOfWeekday(time, weekday);
-
-    await _plugin!.zonedSchedule(
+    final scheduledDate = _nextInstanceOfWeekday(
+      time,
+      weekday,
+    );
+    await _plugin.zonedSchedule(
       id,
       'Hydration Reminder 💧',
       'Time to drink water!',
-      scheduled,
+      scheduledDate,
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'water_channel',
           'Water Reminder',
+          channelDescription: 'Hydration reminder notifications',
           importance: Importance.max,
           priority: Priority.high,
+          category: AndroidNotificationCategory.reminder,
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime, //  KEY
+      androidScheduleMode: AndroidScheduleMode.alarmClock,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
     );
   }
 
-  tz.TZDateTime _nextInstanceOfWeekday(TimeOfDay time, int weekday) {
+  tz.TZDateTime _nextInstanceOfWeekday(
+    TimeOfDay time,
+    int weekday,
+  ) {
     final now = tz.TZDateTime.now(tz.local);
 
-    tz.TZDateTime scheduled = tz.TZDateTime(
+    var scheduled = tz.TZDateTime(
       tz.local,
       now.year,
       now.month,
@@ -99,10 +124,11 @@ class NotificationHelper {
       time.minute,
     );
 
-    while (scheduled.weekday != weekday || scheduled.isBefore(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
+    while (scheduled.weekday != weekday || !scheduled.isAfter(now)) {
+      scheduled = scheduled.add(
+        const Duration(days: 1),
+      );
     }
-
     return scheduled;
   }
 }

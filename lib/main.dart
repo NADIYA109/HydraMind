@@ -19,8 +19,6 @@ void main() async {
   await Firebase.initializeApp();
 
   await NotificationHelper.instance.initNotifications();
-  await NotificationHelper.instance.requestPermission();
-  //await NotificationService.init();
 
   runApp(
     MultiProvider(

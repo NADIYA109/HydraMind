@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hydramind/providers/achievement_provider.dart';
-import 'package:hydramind/providers/streak_provider.dart';
+import 'package:hydramind/providers/reminder_provider.dart';
 import 'package:hydramind/providers/theme_provider.dart';
 import 'package:hydramind/screens/daily_goal_dialog.dart';
 import 'package:hydramind/screens/edit_profile_screen.dart';
@@ -11,7 +11,6 @@ import 'package:hydramind/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/water_provider.dart';
-//import '../providers/profile_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -101,15 +100,15 @@ class SettingsScreen extends StatelessWidget {
                       );
 
                       if (confirm == true) {
+                        /// Clear current user's scheduled reminders before logout
+                        await context.read<ReminderProvider>().clearForLogout();
+
                         await AuthService.logout();
 
                         if (!context.mounted) return;
 
-                        /// 🔥 ADD THIS (VERY IMPORTANT)
+                        /// Clear user-specific achievement data
                         context.read<AchievementProvider>().resetAchievements();
-
-                        /// (optional but recommended)
-                        context.read<StreakProvider>().loadStreak();
 
                         Navigator.pushAndRemoveUntil(
                           context,

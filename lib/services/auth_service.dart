@@ -24,14 +24,34 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      await userCredential.user!.reload();
+
+      if (!userCredential.user!.emailVerified) {
+        //await _auth.signOut();
+
+        throw FirebaseAuthException(
+          code: 'email-not-verified',
+          message: 'Please verify your email first.',
+        );
+      }
+
+      //  Save only after verified login
+      await _saveUser(userCredential.user!);
     } else {
       userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-    }
 
-    await _saveUser(userCredential.user!);
+      await userCredential.user!.sendEmailVerification();
+
+      // Don't save in Firestore yet
+
+      await _auth.signOut();
+
+      return null;
+    }
 
     return userCredential.user;
   }
@@ -56,21 +76,55 @@ class AuthService {
     return userCredential.user;
   }
 
-  // SAVE USER IN FIRESTORE
-
   static Future<void> _saveUser(User user) async {
-    await _firestore.collection('users').doc(user.uid).set({
-      'uid': user.uid,
-      'email': user.email,
-      'lastLogin': FieldValue.serverTimestamp(),
-      'createdAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    final docRef = _firestore.collection('users').doc(user.uid);
+
+    final doc = await docRef.get();
+
+    if (!doc.exists) {
+      // First time user
+      await docRef.set({
+        'uid': user.uid,
+        'email': user.email,
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastLogin': FieldValue.serverTimestamp(),
+      });
+    } else {
+      // Existing user
+      await docRef.update({
+        'lastLogin': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
 // RESET PASSWORD
 
   static Future<void> resetPassword(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  //RESEND VERIFICATION EMAIL
+
+  static Future<void> resendVerificationEmail() async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'no-user',
+        message: 'No user found.',
+      );
+    }
+
+    await user.reload();
+
+    if (user.emailVerified) {
+      throw FirebaseAuthException(
+        code: 'already-verified',
+        message: 'Email is already verified.',
+      );
+    }
+
+    await user.sendEmailVerification();
   }
 
   // CHECK PROFILE COMPLETE
