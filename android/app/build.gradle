@@ -18,9 +18,11 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.hydramind.dailytracker.app"
-    compileSdk = 35
+    compileSdk = 36
     //compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    //ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973" // Latest NDK version including 16 KB page alignment support
+
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17 
@@ -41,12 +43,24 @@ android {
         // targetSdk = flutter.targetSdkVersion
         // versionCode = flutter.versionCode
         // versionName = flutter.versionName
-        minSdkVersion 23
+        minSdkVersion flutter.minSdkVersion
        // targetSdkVersion flutter.targetSdkVersion
-       targetSdkVersion 35
+       targetSdkVersion 36
         versionCode flutter.versionCode
         versionName flutter.versionName
         multiDexEnabled true
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384"
+            }
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
     }
 signingConfigs {
         release {

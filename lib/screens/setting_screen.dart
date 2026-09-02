@@ -8,12 +8,34 @@ import 'package:hydramind/screens/privacy_policy_screen.dart';
 import 'package:hydramind/screens/spalsh_screen.dart';
 import 'package:hydramind/screens/unit_selection_dialog.dart';
 import 'package:hydramind/services/auth_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/water_provider.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    getAppVersion();
+  }
+
+  Future<void> getAppVersion() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    setState(() {
+      version = packageInfo.version;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +280,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     subtitle: Text(
-                      "1.0.1",
+                      version,
                       style: TextStyle(
                         color: Theme.of(context)
                             .textTheme
